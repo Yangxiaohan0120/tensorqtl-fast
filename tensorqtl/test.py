@@ -29,7 +29,7 @@ pr = genotypeio.PlinkReader(plink_prefix_path, select_samples=phenotype_df.colum
 # tensorqtl.map_cis_nominal(pr, phenotype_df, phenotype_pos_df, covariates_df, prefix)
 
 # genes on chr18
-tensorqtl.map_cis_nominal(pr, phenotype_df.loc[phenotype_pos_df['chr']=='chr18'],
+# tensorqtl.map_cis_nominal(pr, phenotype_df.loc[phenotype_pos_df['chr']=='chr18'],
                           phenotype_pos_df, covariates_df, prefix)
 
 # load results
@@ -40,7 +40,7 @@ tensorqtl.map_cis_nominal(pr, phenotype_df.loc[phenotype_pos_df['chr']=='chr18']
 # cis_df = tensorqtl.map_cis(pr, phenotype_df, phenotype_pos_df, covariates_df)
 
 # genes on chr18
-cis_df = tensorqtl.map_cis(pr, phenotype_df.loc[phenotype_pos_df['chr']=='chr18'], phenotype_pos_df, covariates_df)
+# cis_df = tensorqtl.map_cis(pr, phenotype_df.loc[phenotype_pos_df['chr']=='chr18'], phenotype_pos_df, covariates_df)
 
 
 #cis_df.head()
