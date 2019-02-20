@@ -6,5 +6,5 @@ pandas
 pandas-plink
 pyarrow
 scipy
-tensorflow-gpu
+tensorflow
 rpy2
