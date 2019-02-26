@@ -12,7 +12,7 @@ tf.keras.backend.clear_session()
 
 
 
-ray.init()
+ray.init(redis_max_memory=25000000000,object_store_memory=100000000000)
 
 # define paths to data
 plink_prefix_path = '../../genomics_data/GEUVADIS.445_samples.GRCh38.20170504.maf01.filtered'

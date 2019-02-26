@@ -1143,7 +1143,8 @@ Target function
 
 @ray.remote
 def worker_task(ps, phenotype_df, covariates_df, interaction_s,batch_size):
-    # g_iter = ray.get(ps.fetch_g_iter.remote())
+    g_iter = ray.get(ps.fetch_g_iter.remote())
+    print(g_iter)
     # return g_iter
     # return None
 
@@ -1186,7 +1187,7 @@ def worker_task(ps, phenotype_df, covariates_df, interaction_s,batch_size):
             interaction_t = tf.reshape(interaction_t, [-1, 1])
             return genotype_t, phenotype_t, covariates_t, interaction_t
 
-    print(test(10))
+    # print(test(10))
     if interaction_s is None:
         genotypes, phenotypes, covariates = _initialize_data(phenotype_df,
                                                              covariates_df,
@@ -1394,7 +1395,7 @@ class ParameterServer(object):
         ix_t = get_sample_indexes(genotype_df.columns.tolist(), phenotype_df)
 
         _ix_t = _get_sample_indexes(genotype_df.columns.tolist(), phenotype_df)
-
+        self.sess = tf.Session()
         print(ix_t)
         self.next_element = tf.gather(next_element, ix_t, axis=1)
 
