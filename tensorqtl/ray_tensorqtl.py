@@ -1231,19 +1231,21 @@ def map_trans(genotype_df, phenotype_df, covariates_df, interaction_s=None,
         print('  Mapping batches')
 
     @ray.remote
-    def worker_task(sess,i,ggt,next_element):
-        if verbose:
-            sys.stdout.write(
-                '\r  * processing batch {}/{}'.format(i, ggt.num_batches))
-            sys.stdout.flush()
+    def worker_task(i,ggt,next_element):
 
-        g_iter = sess.run(next_element)
-        # x: p_values, maf, {r2}
-        p_ = sess.run(x, feed_dict={genotypes: g_iter})  # ,
-        # options=run_options, run_metadata=run_metadata)
-        # writer.add_run_metadata(run_metadata, 'batch{}'.format(i))
+        init_op = tf.group(tf.global_variables_initializer(),
+                           tf.local_variables_initializer())
 
-        return p_
+        sess.run(init_op)
+        with tf.Session() as sess:
+
+            g_iter = sess.run(next_element)
+            # x: p_values, maf, {r2}
+            p_ = sess.run(x, feed_dict={genotypes: g_iter})  # ,
+            # options=run_options, run_metadata=run_metadata)
+            # writer.add_run_metadata(run_metadata, 'batch{}'.format(i))
+
+            return p_
 
 
 
