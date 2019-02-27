@@ -1142,8 +1142,13 @@ Target function
 
 
 @ray.remote
-def worker_task(ps, phenotype_df, covariates_df, interaction_s,batch_size):
+def worker_task(ps, phenotype_df, covariates_df, interaction_s,
+                batch_size, return_sparse):
     g_iter = ray.get(ps.fetch_g_iter.remote())
+
+    n_samples = phenotype_df.shape[1]
+
+    # -------------------------------------------------------------------------
 
     def _initialize_data(phenotype_df, covariates_df, batch_size,
                          interaction_s=None,
@@ -1163,6 +1168,8 @@ def worker_task(ps, phenotype_df, covariates_df, interaction_s,batch_size):
             interaction_t = tf.reshape(interaction_t, [-1, 1])
             return genotype_t, phenotype_t, covariates_t, interaction_t
 
+    # -------------------------------------------------------------------------
+
     def initialize_data(phenotype_df, covariates_df, batch_size,
                         interaction_s=None,
                         dtype=tf.float32):
@@ -1181,13 +1188,11 @@ def worker_task(ps, phenotype_df, covariates_df, interaction_s,batch_size):
             interaction_t = tf.reshape(interaction_t, [-1, 1])
             return genotype_t, phenotype_t, covariates_t, interaction_t
 
-    # print(test(10))
     if interaction_s is None:
         genotypes, phenotypes, covariates = _initialize_data(phenotype_df,
                                                              covariates_df,
                                                              batch_size=batch_size,
                                                              dtype=tf.float32)
-
     else:
         genotypes, phenotypes, covariates, interaction = initialize_data(
             phenotype_df, covariates_df, batch_size=batch_size,
@@ -1207,10 +1212,11 @@ def worker_task(ps, phenotype_df, covariates_df, interaction_s,batch_size):
                 2 * tf.cast(tf.shape(genotype_t)[1], tf.float32))
         return tf.where(af_t > 0.5, 1 - af_t, af_t)
 
+    # -------------------------------------------------------------------------
 
     def _calculate_pval(r2_t, dof, maf_t=None, return_sparse=True,
-                       r2_threshold=0,
-                       return_r2=False):
+                        r2_threshold=0,
+                        return_r2=False):
         """Calculate p-values from squared correlations"""
         dims = r2_t.get_shape()
         if return_sparse:
@@ -1243,6 +1249,8 @@ def worker_task(ps, phenotype_df, covariates_df, interaction_s,batch_size):
         else:
             return pval_t
 
+    # -------------------------------------------------------------------------
+
     def _residualize(M_t, C_t):
         """Residualize M wrt columns of C"""
 
@@ -1255,6 +1263,8 @@ def worker_task(ps, phenotype_df, covariates_df, interaction_s,batch_size):
         return M_t - tf.matmul(tf.matmul(M0_t, Q_t), Q_t,
                                transpose_b=True)  # keep original mean
 
+    # -------------------------------------------------------------------------
+
     def _center_normalize(M_t, axis=0):
         """Center and normalize M"""
         if axis == 0:
@@ -1265,15 +1275,17 @@ def worker_task(ps, phenotype_df, covariates_df, interaction_s,batch_size):
             return tf.divide(N_t, tf.sqrt(
                 tf.reduce_sum(tf.pow(N_t, 2), axis=1, keepdims=True)))
 
+    # -------------------------------------------------------------------------
+
     def _calculate_corr(genotype_t, phenotype_t, covariates_t,
-    return_sd=False):
+                        return_sd=False):
         """Calculate correlation between normalized residual genotypes and
         phenotypes"""
         # residualize
         genotype_res_t = _residualize(genotype_t,
-                                     covariates_t)  # variants x samples
+                                      covariates_t)  # variants x samples
         phenotype_res_t = _residualize(phenotype_t,
-                                      covariates_t)  # phenotypes x samples
+                                       covariates_t)  # phenotypes x samples
 
         if return_sd:
             _, gstd = tf.nn.moments(genotype_res_t, axes=1)
@@ -1287,14 +1299,14 @@ def worker_task(ps, phenotype_df, covariates_df, interaction_s,batch_size):
         if return_sd:
             return tf.squeeze(tf.matmul(genotype_res_t, phenotype_res_t,
                                         transpose_b=True)), tf.sqrt(pstd /
-                                        gstd)
+                                                                    gstd)
         else:
             return tf.squeeze(
                 tf.matmul(genotype_res_t, phenotype_res_t, transpose_b=True))
 
     def _calculate_association(genotype_t, phenotype_t, covariates_t,
-                              interaction_t=None, return_sparse=True,
-                              r2_threshold=None, return_r2=False):
+                               interaction_t=None, return_sparse=True,
+                               r2_threshold=None, return_r2=False):
         """Calculate genotype-phenotype associations"""
         maf_t = _calculate_maf(genotype_t)
 
@@ -1306,44 +1318,32 @@ def worker_task(ps, phenotype_df, covariates_df, interaction_s,batch_size):
             icovariates_t = tf.concat([covariates_t, interaction_t], axis=1)
             r2_t = tf.pow(tf.map_fn(
                 lambda x: _interaction_assoc_row(x, phenotype_t,
-                icovariates_t),
+                                                 icovariates_t),
                 genotype_t, infer_shape=False), 2)
             dof = genotype_t.shape[1].value - 4 - covariates_t.shape[1].value
 
         return _calculate_pval(r2_t, dof, maf_t, return_sparse=return_sparse,
-                              r2_threshold=r2_threshold, return_r2=return_r2)
+                               r2_threshold=r2_threshold, return_r2=return_r2)
 
+    if return_sparse:
+        dof = n_samples - 2 - covariates_df.shape[1]
+        tstat_threshold = stats.t.ppf(pval_threshold / 2, dof)
+        r2_threshold = tstat_threshold ** 2 / (dof + tstat_threshold ** 2)
+    else:
+        r2_threshold = None
 
     if interaction_s is None:
-        # genotypes, phenotypes, covariates = initialize_data(phenotype_df,
-        #                                                     covariates_df,
-        #
-        batch_size=batch_size,
-        #
-        dtype=tf.float32
-        # with tf.device('/gpu:0'):
         x = _calculate_association(genotypes, phenotypes, covariates,
-                                  return_sparse=return_sparse,
-                                  r2_threshold=r2_threshold,
-                                  return_r2=return_r2)
+                                   return_sparse=return_sparse,
+                                   r2_threshold=r2_threshold,
+                                   return_r2=return_r2)
     else:
-        # genotypes, phenotypes, covariates, interaction = initialize_data(
-        #     phenotype_df, covariates_df, batch_size=batch_size,
-        #     interaction_s=interaction_s)
         x = _calculate_association(genotypes, phenotypes, covariates,
-                                  interaction_t=interaction,
-                                  return_sparse=return_sparse,
-                                  r2_threshold=r2_threshold)
+                                   interaction_t=interaction,
+                                   return_sparse=return_sparse,
+                                   r2_threshold=r2_threshold)
 
     return sess.run(x, feed_dict={genotypes: g_iter})  # ,
-
-    # options=run_options, run_metadata=run_metadata)
-    # writer.add_run_metadata(run_metadata, 'batch{}'.format(i))
-
-    # pval_list.append(p_[0])
-    # maf_list.append(p_[1])
-    # if return_r2:
-    #     r2_list.append(p_[2])
 
 
 @ray.remote
@@ -1360,7 +1360,6 @@ class ParameterServer(object):
         assert np.all(phenotype_df.columns == covariates_df.index)
 
         variant_ids = genotype_df.index.tolist()
-        variant_dict = {i: j for i, j in enumerate(variant_ids)}
         n_variants = len(variant_ids)
         n_samples = phenotype_df.shape[1]
 
@@ -1422,28 +1421,29 @@ def map_trans(genotype_df, phenotype_df, covariates_df,
     #     r2_threshold = None
     #     tstat_threshold = None
 
-        # if interaction_s is None:
-        #     genotypes, phenotypes, covariates = _initialize_data(phenotype_df,
-        #                                                          covariates_df,
-        #                                                          batch_size=batch_size,
-        #                                                          dtype=tf.float32)
-        #
-        # else:
-        #     genotypes, phenotypes, covariates, interaction = initialize_data(
-        #         phenotype_df, covariates_df, batch_size=batch_size,
-        #         interaction_s=interaction_s)
+    # if interaction_s is None:
+    #     genotypes, phenotypes, covariates = _initialize_data(phenotype_df,
+    #                                                          covariates_df,
+    #                                                          batch_size=batch_size,
+    #                                                          dtype=tf.float32)
+    #
+    # else:
+    #     genotypes, phenotypes, covariates, interaction = initialize_data(
+    #         phenotype_df, covariates_df, batch_size=batch_size,
+    #         interaction_s=interaction_s)
 
     start_time = time.time()
     if verbose:
         print('  Mapping batches')
-
 
     pval_list = []
     maf_list = []
     r2_list = []
 
     data = ray.get(
-        [worker_task.remote(ps, phenotype_df, covariates_df, interaction_s,batch_size) for _ in range(ggt.num_batches)])
+        [worker_task.remote(ps, phenotype_df, covariates_df, interaction_s,
+                            batch_size, return_sparse) for _ in
+            range(ggt.num_batches)])
 
     print(data)
     print("Reached the end!")
@@ -1499,7 +1499,6 @@ def map_trans(genotype_df, phenotype_df, covariates_df,
         return self.sess.run(self.next_element)
 
 
-
 """
 ==============================================================================================================================================================
 ==============================================================================================================================================================
@@ -1507,15 +1506,6 @@ def map_trans(genotype_df, phenotype_df, covariates_df,
 ==============================================================================================================================================================
 ==============================================================================================================================================================
 """
-
-
-
-
-
-
-
-
-
 
 
 def map_trans_permutations(genotype_input, phenotype_df, covariates_df,

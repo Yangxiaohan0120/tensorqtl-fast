@@ -15,7 +15,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.53488374">
+    <splitter split-orientation="horizontal" split-proportion="0.85333335">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file pinned="false" current-in-tab="false">
@@ -30,8 +30,8 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/tensorqtl/tensorqtl.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="261">
-                  <caret line="1336" lean-forward="true" selection-start-line="1336" selection-end-line="1336" />
+                <state relative-caret-position="337">
+                  <caret line="1279" column="49" lean-forward="true" selection-start-line="1279" selection-start-column="49" selection-end-line="1279" selection-end-column="49" />
                 </state>
               </provider>
             </entry>
@@ -61,7 +61,7 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/tensorqtl/ray_tensorqtl.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="54">
+                <state relative-caret-position="61">
                   <caret line="1173" column="4" selection-start-line="1173" selection-start-column="4" selection-end-line="1173" selection-end-column="37" />
                 </state>
               </provider>
@@ -118,6 +118,8 @@
       <find>initialize_data</find>
       <find>_initialize_data</find>
       <find>ggt</find>
+      <find>r2_threshold</find>
+      <find>pval_threshold</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -214,14 +216,13 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1452" y="37" width="1905" height="1115" extended-state="0" />
-    <editor active="true" />
+    <frame x="119" y="24" width="1321" height="877" extended-state="0" />
     <layout>
       <window_info id="Favorites" order="0" side_tool="true" />
-      <window_info content_ui="combo" id="Project" order="1" visible="true" weight="0.13269639" />
+      <window_info content_ui="combo" id="Project" order="1" visible="true" weight="0.1923077" />
       <window_info id="Structure" order="2" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Inspection Results" order="0" weight="0.24195625" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="1" visible="true" weight="0.22167487" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="1" visible="true" weight="0.22007722" />
       <window_info anchor="bottom" id="Event Log" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Python Console" order="3" />
       <window_info anchor="bottom" id="Message" order="4" />
@@ -323,8 +324,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/tensorqtl/tensorqtl.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="261">
-          <caret line="1336" lean-forward="true" selection-start-line="1336" selection-end-line="1336" />
+        <state relative-caret-position="337">
+          <caret line="1279" column="49" lean-forward="true" selection-start-line="1279" selection-start-column="49" selection-end-line="1279" selection-end-column="49" />
         </state>
       </provider>
     </entry>
