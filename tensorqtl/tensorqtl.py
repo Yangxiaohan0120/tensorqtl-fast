@@ -1320,7 +1320,7 @@ def worker_task(ps, phenotype_df, covariates_df, interaction_s,batch_size):
         #
         batch_size=batch_size,
         #
-        dtype=tf.float32)
+        dtype=tf.float32
         # with tf.device('/gpu:0'):
         x = _calculate_association(genotypes, phenotypes, covariates,
                                   return_sparse=return_sparse,
