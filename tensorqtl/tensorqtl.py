@@ -1188,20 +1188,7 @@ def initialize_data(phenotype_df, covariates_df, batch_size,
         interaction_t = tf.reshape(interaction_t, [-1, 1])
         return genotype_t, phenotype_t, covariates_t, interaction_t
 
-if interaction_s is None:
-    genotypes, phenotypes, covariates = _initialize_data(phenotype_df,
-                                                         covariates_df, batch_size=batch_size, dtype=tf.float32)
-else:
-    genotypes, phenotypes, covariates, interaction = initialize_data(
-        phenotype_df, covariates_df, batch_size=batch_size,
-        interaction_s=interaction_s)
-
-sess = tf.Session()
-
-init_op = tf.group(tf.global_variables_initializer(),
-                   tf.local_variables_initializer())
-
-sess.run(init_op)
+# -------------------------------------------------------------------------
 
 def _calculate_maf(genotype_t):
     """Calculate minor allele frequency"""
