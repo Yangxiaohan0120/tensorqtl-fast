@@ -29,8 +29,8 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/tensorqtl/tensorqtl.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="523">
-                  <caret line="1440" column="16" lean-forward="true" selection-start-line="1440" selection-start-column="16" selection-end-line="1440" selection-end-column="16" />
+                <state relative-caret-position="362">
+                  <caret line="1141" lean-forward="true" selection-start-line="1141" selection-end-line="1141" />
                 </state>
               </provider>
             </entry>
@@ -324,8 +324,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/tensorqtl/tensorqtl.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="523">
-          <caret line="1440" column="16" lean-forward="true" selection-start-line="1440" selection-start-column="16" selection-end-line="1440" selection-end-column="16" />
+        <state relative-caret-position="362">
+          <caret line="1141" lean-forward="true" selection-start-line="1141" selection-end-line="1141" />
         </state>
       </provider>
     </entry>

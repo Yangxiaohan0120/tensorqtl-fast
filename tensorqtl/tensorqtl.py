@@ -1143,7 +1143,7 @@ Target function
 
 @ray.remote
 def worker_task(ps, phenotype_df, covariates_df, interaction_s,
-                batch_size, return_sparse,pval_threshold):
+                batch_size, return_sparse,pval_threshold,return_r2):
     g_iter = ray.get(ps.fetch_g_iter.remote())
 
     n_samples = phenotype_df.shape[1]
@@ -1442,7 +1442,7 @@ def map_trans(genotype_df, phenotype_df, covariates_df,
 
     data = ray.get(
         [worker_task.remote(ps, phenotype_df, covariates_df, interaction_s,
-                            batch_size, return_sparse,pval_threshold) for _ in
+                            batch_size, return_sparse,pval_threshold,return_r2) for _ in
             range(ggt.num_batches)])
 
     print(data)
