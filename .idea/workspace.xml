@@ -5,9 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="69858883-011b-4b23-832b-2cc9db16f081" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tensorqtl/tensorqtl.py" beforeDir="false" afterPath="$PROJECT_DIR$/tensorqtl/tensorqtl.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorqtl/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/tensorqtl/test.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -16,7 +14,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.47845468">
+    <splitter split-orientation="horizontal" split-proportion="0.7362556">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file pinned="false" current-in-tab="false">
@@ -31,8 +29,8 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/tensorqtl/tensorqtl.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="295">
-                  <caret line="1408" column="9" lean-forward="true" selection-start-line="1408" selection-start-column="9" selection-end-line="1408" selection-end-column="9" />
+                <state relative-caret-position="225">
+                  <caret line="1153" column="40" lean-forward="true" selection-start-line="1153" selection-start-column="40" selection-end-line="1153" selection-end-column="40" />
                 </state>
               </provider>
             </entry>
@@ -117,10 +115,10 @@
       <find>residualize</find>
       <find>center_normalize</find>
       <find>initialize_data</find>
-      <find>_initialize_data</find>
       <find>ggt</find>
       <find>r2_threshold</find>
       <find>pval_threshold</find>
+      <find>_initialize_data</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -142,7 +140,7 @@
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="1559" />
+    <option name="x" value="1558" />
     <option name="y" value="24" />
     <option name="width" value="1617" />
     <option name="height" value="1146" />
@@ -217,7 +215,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1559" y="24" width="1617" height="1146" extended-state="0" />
+    <frame x="1558" y="24" width="1617" height="1146" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Favorites" order="0" side_tool="true" />
@@ -326,8 +324,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/tensorqtl/tensorqtl.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="295">
-          <caret line="1408" column="9" lean-forward="true" selection-start-line="1408" selection-start-column="9" selection-end-line="1408" selection-end-column="9" />
+        <state relative-caret-position="225">
+          <caret line="1153" column="40" lean-forward="true" selection-start-line="1153" selection-start-column="40" selection-end-line="1153" selection-end-column="40" />
         </state>
       </provider>
     </entry>
