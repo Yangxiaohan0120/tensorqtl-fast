@@ -10,9 +10,7 @@ import ray
 import time
 tf.keras.backend.clear_session()
 
-
-
-ray.init(redis_max_memory=25000000000,object_store_memory=100000000000)
+ray.init(redis_max_memory=100000000000,object_store_memory=500000000000)
 
 # define paths to data
 plink_prefix_path = '../../genomics_data/GEUVADIS.445_samples.GRCh38.20170504.maf01.filtered'
@@ -59,8 +57,6 @@ genotype_df = genotypeio.load_genotypes(plink_prefix_path)
 trans_df = tensorqtl.map_trans(genotype_df, phenotype_df, covariates_df, batch_size=50000,
                                return_sparse=True, pval_threshold=1e-5, maf_threshold=0.05)
 
-while True:
-    time.sleep(10)
 # remove cis-associations
 trans_df = tensorqtl.filter_cis(trans_df, phenotype_pos_df.T.to_dict(), window=1000000)
 

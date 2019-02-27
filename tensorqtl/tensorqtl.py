@@ -1141,64 +1141,200 @@ Target function
 """
 
 
+# @ray.remote
+# def worker_task(ps, phenotype_df, covariates_df, interaction_s,
+#                 batch_size, return_sparse,pval_threshold,return_r2):
+#     g_iter = ray.get(ps.fetch_g_iter.remote())
+#
+#     n_samples = phenotype_df.shape[1]
+
+    # # -------------------------------------------------------------------------
+    #
+    # def _initialize_data(phenotype_df, covariates_df, batch_size,
+    #                      interaction_s=None,
+    #                      dtype=tf.float32):
+    #     """Generate placeholders"""
+    #     num_samples = phenotype_df.shape[1]
+    #     genotype_t = tf.placeholder(dtype, shape=[batch_size, num_samples])
+    #     phenotype_t = tf.constant(phenotype_df.values, dtype=dtype)
+    #     phenotype_t = tf.reshape(phenotype_t, shape=[-1, num_samples])
+    #     covariates_t = tf.constant(covariates_df.values, dtype=dtype)
+    #     covariates_t = tf.reshape(covariates_t,
+    #                               shape=[-1, covariates_df.shape[1]])
+    #     if interaction_s is None:
+    #         return genotype_t, phenotype_t, covariates_t
+    #     else:
+    #         interaction_t = tf.constant(interaction_s.values, dtype=dtype)
+    #         interaction_t = tf.reshape(interaction_t, [-1, 1])
+    #         return genotype_t, phenotype_t, covariates_t, interaction_t
+    #
+    # # -------------------------------------------------------------------------
+    #
+    # def initialize_data(phenotype_df, covariates_df, batch_size,
+    #                     interaction_s=None,
+    #                     dtype=tf.float32):
+    #     """Generate placeholders"""
+    #     num_samples = phenotype_df.shape[1]
+    #     genotype_t = tf.placeholder(dtype, shape=[batch_size, num_samples])
+    #     phenotype_t = tf.constant(phenotype_df.values, dtype=dtype)
+    #     phenotype_t = tf.reshape(phenotype_t, shape=[-1, num_samples])
+    #     covariates_t = tf.constant(covariates_df.values, dtype=dtype)
+    #     covariates_t = tf.reshape(covariates_t,
+    #                               shape=[-1, covariates_df.shape[1]])
+    #     if interaction_s is None:
+    #         return genotype_t, phenotype_t, covariates_t
+    #     else:
+    #         interaction_t = tf.constant(interaction_s.values, dtype=dtype)
+    #         interaction_t = tf.reshape(interaction_t, [-1, 1])
+    #         return genotype_t, phenotype_t, covariates_t, interaction_t
+    #
+    # if interaction_s is None:
+    #     genotypes, phenotypes, covariates = _initialize_data(phenotype_df,
+    #         covariates_df, batch_size=batch_size, dtype=tf.float32)
+    # else:
+    #     genotypes, phenotypes, covariates, interaction = initialize_data(
+    #         phenotype_df, covariates_df, batch_size=batch_size,
+    #         interaction_s=interaction_s)
+    #
+    # sess = tf.Session()
+    #
+    # init_op = tf.group(tf.global_variables_initializer(),
+    #                    tf.local_variables_initializer())
+    #
+    # sess.run(init_op)
+    #
+    # def _calculate_maf(genotype_t):
+    #     """Calculate minor allele frequency"""
+    #     af_t = tf.reduce_sum(genotype_t, 1) / (
+    #             2 * tf.cast(tf.shape(genotype_t)[1], tf.float32))
+    #     return tf.where(af_t > 0.5, 1 - af_t, af_t)
+    #
+    # # -------------------------------------------------------------------------
+    #
+    # def _calculate_pval(r2_t, dof, maf_t=None, return_sparse=True,
+    #                     r2_threshold=0,
+    #                     return_r2=False):
+    #     """Calculate p-values from squared correlations"""
+    #     dims = r2_t.get_shape()
+    #     if return_sparse:
+    #         ix = tf.where(r2_t >= r2_threshold, name='threshold_r2')
+    #         r2_t = tf.gather_nd(r2_t, ix)
+    #
+    #     r2_t = tf.cast(r2_t, tf.float64)
+    #
+    #     tstat = tf.sqrt(tf.divide(tf.scalar_mul(dof, r2_t), 1 - r2_t),
+    #                     name='tstat')
+    #     tdist = tf.contrib.distributions.StudentT(np.float64(dof),
+    #                                               loc=np.float64(0.0),
+    #                                               scale=np.float64(1.0))
+    #
+    #     if return_sparse:
+    #         pval_t = tf.SparseTensor(ix,
+    #                                  tf.scalar_mul(2,
+    #                                                tdist.cdf(-tf.abs(tstat))),
+    #                                  dims)
+    #         if maf_t is not None:
+    #             maf_t = tf.gather(maf_t, ix[:, 0])
+    #     else:
+    #         pval_t = tf.scalar_mul(2, tdist.cdf(-tf.abs(tstat)))
+    #
+    #     if maf_t is not None:
+    #         if return_r2:
+    #             return pval_t, maf_t, r2_t
+    #         else:
+    #             return pval_t, maf_t
+    #     else:
+    #         return pval_t
+    #
+    # # -------------------------------------------------------------------------
+    #
+    # def _residualize(M_t, C_t):
+    #     """Residualize M wrt columns of C"""
+    #
+    #     # center and orthogonalize
+    #     Q_t, _ = tf.qr(C_t - tf.reduce_mean(C_t, 0), full_matrices=False,
+    #                    name='qr')
+    #
+    #     # residualize M relative to C
+    #     M0_t = M_t - tf.reduce_mean(M_t, axis=1, keepdims=True)
+    #     return M_t - tf.matmul(tf.matmul(M0_t, Q_t), Q_t,
+    #                            transpose_b=True)  # keep original mean
+    #
+    # # -------------------------------------------------------------------------
+    #
+    # def _center_normalize(M_t, axis=0):
+    #     """Center and normalize M"""
+    #     if axis == 0:
+    #         N_t = M_t - tf.reduce_mean(M_t, 0)
+    #         return tf.divide(N_t, tf.sqrt(tf.reduce_sum(tf.pow(N_t, 2), 0)))
+    #     elif axis == 1:
+    #         N_t = M_t - tf.reduce_mean(M_t, axis=1, keepdims=True)
+    #         return tf.divide(N_t, tf.sqrt(
+    #             tf.reduce_sum(tf.pow(N_t, 2), axis=1, keepdims=True)))
+    #
+    # # -------------------------------------------------------------------------
+    #
+    # def _calculate_corr(genotype_t, phenotype_t, covariates_t,
+    #                     return_sd=False):
+    #     """Calculate correlation between normalized residual genotypes and
+    #     phenotypes"""
+    #     # residualize
+    #     genotype_res_t = _residualize(genotype_t,
+    #                                   covariates_t)  # variants x samples
+    #     phenotype_res_t = _residualize(phenotype_t,
+    #                                    covariates_t)  # phenotypes x samples
+    #
+    #     if return_sd:
+    #         _, gstd = tf.nn.moments(genotype_res_t, axes=1)
+    #         _, pstd = tf.nn.moments(phenotype_res_t, axes=1)
+    #
+    #     # center and normalize
+    #     genotype_res_t = _center_normalize(genotype_res_t, axis=1)
+    #     phenotype_res_t = _center_normalize(phenotype_res_t, axis=1)
+    #
+    #     # correlation
+    #     if return_sd:
+    #         return tf.squeeze(tf.matmul(genotype_res_t, phenotype_res_t,
+    #                                     transpose_b=True)), tf.sqrt(pstd /
+    #                                                                 gstd)
+    #     else:
+    #         return tf.squeeze(
+    #             tf.matmul(genotype_res_t, phenotype_res_t, transpose_b=True))
+    #
+    # def _calculate_association(genotype_t, phenotype_t, covariates_t,
+    #                            interaction_t=None, return_sparse=True,
+    #                            r2_threshold=None, return_r2=False):
+    #     """Calculate genotype-phenotype associations"""
+    #     maf_t = _calculate_maf(genotype_t)
+    #
+    #     if interaction_t is None:
+    #         r2_t = tf.pow(
+    #             _calculate_corr(genotype_t, phenotype_t, covariates_t), 2)
+    #         dof = genotype_t.shape[1].value - 2 - covariates_t.shape[1].value
+    #     else:
+    #         icovariates_t = tf.concat([covariates_t, interaction_t], axis=1)
+    #         r2_t = tf.pow(tf.map_fn(
+    #             lambda x: _interaction_assoc_row(x, phenotype_t,
+    #                                              icovariates_t),
+    #             genotype_t, infer_shape=False), 2)
+    #         dof = genotype_t.shape[1].value - 4 - covariates_t.shape[1].value
+    #
+    #     return _calculate_pval(r2_t, dof, maf_t, return_sparse=return_sparse,
+    #                            r2_threshold=r2_threshold, return_r2=return_r2)
+
 @ray.remote
 def worker_task(ps, phenotype_df, covariates_df, interaction_s,
-                batch_size, return_sparse,pval_threshold,return_r2):
+                    batch_size, return_sparse, pval_threshold, return_r2):
     g_iter = ray.get(ps.fetch_g_iter.remote())
-
-    n_samples = phenotype_df.shape[1]
-
-    # -------------------------------------------------------------------------
-
-    def _initialize_data(phenotype_df, covariates_df, batch_size,
-                         interaction_s=None,
-                         dtype=tf.float32):
-        """Generate placeholders"""
-        num_samples = phenotype_df.shape[1]
-        genotype_t = tf.placeholder(dtype, shape=[batch_size, num_samples])
-        phenotype_t = tf.constant(phenotype_df.values, dtype=dtype)
-        phenotype_t = tf.reshape(phenotype_t, shape=[-1, num_samples])
-        covariates_t = tf.constant(covariates_df.values, dtype=dtype)
-        covariates_t = tf.reshape(covariates_t,
-                                  shape=[-1, covariates_df.shape[1]])
-        if interaction_s is None:
-            return genotype_t, phenotype_t, covariates_t
-        else:
-            interaction_t = tf.constant(interaction_s.values, dtype=dtype)
-            interaction_t = tf.reshape(interaction_t, [-1, 1])
-            return genotype_t, phenotype_t, covariates_t, interaction_t
-
-    # -------------------------------------------------------------------------
-
-    def initialize_data(phenotype_df, covariates_df, batch_size,
-                        interaction_s=None,
-                        dtype=tf.float32):
-        """Generate placeholders"""
-        num_samples = phenotype_df.shape[1]
-        genotype_t = tf.placeholder(dtype, shape=[batch_size, num_samples])
-        phenotype_t = tf.constant(phenotype_df.values, dtype=dtype)
-        phenotype_t = tf.reshape(phenotype_t, shape=[-1, num_samples])
-        covariates_t = tf.constant(covariates_df.values, dtype=dtype)
-        covariates_t = tf.reshape(covariates_t,
-                                  shape=[-1, covariates_df.shape[1]])
-        if interaction_s is None:
-            return genotype_t, phenotype_t, covariates_t
-        else:
-            interaction_t = tf.constant(interaction_s.values, dtype=dtype)
-            interaction_t = tf.reshape(interaction_t, [-1, 1])
-            return genotype_t, phenotype_t, covariates_t, interaction_t
 
     if interaction_s is None:
         genotypes, phenotypes, covariates = _initialize_data(phenotype_df,
-                                                             covariates_df,
-                                                             batch_size=batch_size,
-                                                             dtype=tf.float32)
+            covariates_df, batch_size=batch_size, dtype=tf.float32)
     else:
         genotypes, phenotypes, covariates, interaction = initialize_data(
             phenotype_df, covariates_df, batch_size=batch_size,
             interaction_s=interaction_s)
 
-    #
     sess = tf.Session()
 
     init_op = tf.group(tf.global_variables_initializer(),
@@ -1206,124 +1342,7 @@ def worker_task(ps, phenotype_df, covariates_df, interaction_s,
 
     sess.run(init_op)
 
-    def _calculate_maf(genotype_t):
-        """Calculate minor allele frequency"""
-        af_t = tf.reduce_sum(genotype_t, 1) / (
-                2 * tf.cast(tf.shape(genotype_t)[1], tf.float32))
-        return tf.where(af_t > 0.5, 1 - af_t, af_t)
-
-    # -------------------------------------------------------------------------
-
-    def _calculate_pval(r2_t, dof, maf_t=None, return_sparse=True,
-                        r2_threshold=0,
-                        return_r2=False):
-        """Calculate p-values from squared correlations"""
-        dims = r2_t.get_shape()
-        if return_sparse:
-            ix = tf.where(r2_t >= r2_threshold, name='threshold_r2')
-            r2_t = tf.gather_nd(r2_t, ix)
-
-        r2_t = tf.cast(r2_t, tf.float64)
-
-        tstat = tf.sqrt(tf.divide(tf.scalar_mul(dof, r2_t), 1 - r2_t),
-                        name='tstat')
-        tdist = tf.contrib.distributions.StudentT(np.float64(dof),
-                                                  loc=np.float64(0.0),
-                                                  scale=np.float64(1.0))
-
-        if return_sparse:
-            pval_t = tf.SparseTensor(ix,
-                                     tf.scalar_mul(2,
-                                                   tdist.cdf(-tf.abs(tstat))),
-                                     dims)
-            if maf_t is not None:
-                maf_t = tf.gather(maf_t, ix[:, 0])
-        else:
-            pval_t = tf.scalar_mul(2, tdist.cdf(-tf.abs(tstat)))
-
-        if maf_t is not None:
-            if return_r2:
-                return pval_t, maf_t, r2_t
-            else:
-                return pval_t, maf_t
-        else:
-            return pval_t
-
-    # -------------------------------------------------------------------------
-
-    def _residualize(M_t, C_t):
-        """Residualize M wrt columns of C"""
-
-        # center and orthogonalize
-        Q_t, _ = tf.qr(C_t - tf.reduce_mean(C_t, 0), full_matrices=False,
-                       name='qr')
-
-        # residualize M relative to C
-        M0_t = M_t - tf.reduce_mean(M_t, axis=1, keepdims=True)
-        return M_t - tf.matmul(tf.matmul(M0_t, Q_t), Q_t,
-                               transpose_b=True)  # keep original mean
-
-    # -------------------------------------------------------------------------
-
-    def _center_normalize(M_t, axis=0):
-        """Center and normalize M"""
-        if axis == 0:
-            N_t = M_t - tf.reduce_mean(M_t, 0)
-            return tf.divide(N_t, tf.sqrt(tf.reduce_sum(tf.pow(N_t, 2), 0)))
-        elif axis == 1:
-            N_t = M_t - tf.reduce_mean(M_t, axis=1, keepdims=True)
-            return tf.divide(N_t, tf.sqrt(
-                tf.reduce_sum(tf.pow(N_t, 2), axis=1, keepdims=True)))
-
-    # -------------------------------------------------------------------------
-
-    def _calculate_corr(genotype_t, phenotype_t, covariates_t,
-                        return_sd=False):
-        """Calculate correlation between normalized residual genotypes and
-        phenotypes"""
-        # residualize
-        genotype_res_t = _residualize(genotype_t,
-                                      covariates_t)  # variants x samples
-        phenotype_res_t = _residualize(phenotype_t,
-                                       covariates_t)  # phenotypes x samples
-
-        if return_sd:
-            _, gstd = tf.nn.moments(genotype_res_t, axes=1)
-            _, pstd = tf.nn.moments(phenotype_res_t, axes=1)
-
-        # center and normalize
-        genotype_res_t = _center_normalize(genotype_res_t, axis=1)
-        phenotype_res_t = _center_normalize(phenotype_res_t, axis=1)
-
-        # correlation
-        if return_sd:
-            return tf.squeeze(tf.matmul(genotype_res_t, phenotype_res_t,
-                                        transpose_b=True)), tf.sqrt(pstd /
-                                                                    gstd)
-        else:
-            return tf.squeeze(
-                tf.matmul(genotype_res_t, phenotype_res_t, transpose_b=True))
-
-    def _calculate_association(genotype_t, phenotype_t, covariates_t,
-                               interaction_t=None, return_sparse=True,
-                               r2_threshold=None, return_r2=False):
-        """Calculate genotype-phenotype associations"""
-        maf_t = _calculate_maf(genotype_t)
-
-        if interaction_t is None:
-            r2_t = tf.pow(
-                _calculate_corr(genotype_t, phenotype_t, covariates_t), 2)
-            dof = genotype_t.shape[1].value - 2 - covariates_t.shape[1].value
-        else:
-            icovariates_t = tf.concat([covariates_t, interaction_t], axis=1)
-            r2_t = tf.pow(tf.map_fn(
-                lambda x: _interaction_assoc_row(x, phenotype_t,
-                                                 icovariates_t),
-                genotype_t, infer_shape=False), 2)
-            dof = genotype_t.shape[1].value - 4 - covariates_t.shape[1].value
-
-        return _calculate_pval(r2_t, dof, maf_t, return_sparse=return_sparse,
-                               r2_threshold=r2_threshold, return_r2=return_r2)
+    n_samples = phenotype_df.shape[1]
 
     if return_sparse:
         dof = n_samples - 2 - covariates_df.shape[1]
@@ -1343,7 +1362,11 @@ def worker_task(ps, phenotype_df, covariates_df, interaction_s,
                                    return_sparse=return_sparse,
                                    r2_threshold=r2_threshold)
 
-    return sess.run(x, feed_dict={genotypes: g_iter})  # ,
+
+    output = sess.run(x, feed_dict={genotypes: g_iter})
+    print("Worker task complete!")
+    del g_iter, genotypes, phenotypes, covariates
+    return output
 
 
 @ray.remote
@@ -1372,11 +1395,14 @@ class ParameterServer(object):
             logger.write('  * including interaction term')
 
         # # with tf.device('/cpu:0'):
+        # Changed from float32 to float16
         ggt = genotypeio.GenotypeGeneratorTrans(genotype_df.values,
                                                 batch_size=batch_size,
-                                                dtype=np.float32)
+                                                dtype=np.float16)
+
+        # Changed from float32 to float16
         dataset_genotypes = tf.data.Dataset.from_generator(ggt.generate_data,
-                                                           output_types=tf.float32)
+                                                           output_types=tf.float16)
         dataset_genotypes = dataset_genotypes.prefetch(10)
         iterator = dataset_genotypes.make_one_shot_iterator()
         next_element = iterator.get_next()
@@ -1408,9 +1434,10 @@ def map_trans(genotype_df, phenotype_df, covariates_df,
                                 logger=logger,
                                 verbose=verbose)
 
+    # Changed from float32 to float16
     ggt = genotypeio.GenotypeGeneratorTrans(genotype_df.values,
                                             batch_size=batch_size,
-                                            dtype=np.float32)
+                                            dtype=np.float16)
 
     # # calculate correlation threshold for sparse output
     # if return_sparse:
@@ -1440,10 +1467,11 @@ def map_trans(genotype_df, phenotype_df, covariates_df,
     maf_list = []
     r2_list = []
 
+
     data = ray.get(
         [worker_task.remote(ps, phenotype_df, covariates_df, interaction_s,
-                            batch_size, return_sparse,pval_threshold,return_r2) for _ in
-            range(ggt.num_batches)])
+            batch_size, return_sparse,pval_threshold,return_r2)
+            for _ in range(ggt.num_batches)])
 
     print(data)
     print("Reached the end!")
