@@ -5,6 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="69858883-011b-4b23-832b-2cc9db16f081" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/scratchpad/init_ray.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tensorqtl/tensorqtl.py" beforeDir="false" afterPath="$PROJECT_DIR$/tensorqtl/tensorqtl.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -26,11 +28,20 @@
               </provider>
             </entry>
           </file>
-          <file pinned="false" current-in-tab="true">
+          <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/tensorqtl/tensorqtl.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="237">
-                  <caret line="1189" lean-forward="true" selection-start-line="1189" selection-end-line="1189" />
+                <state relative-caret-position="950">
+                  <caret line="1311" lean-forward="true" selection-start-line="1311" selection-end-line="1311" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/scratchpad/init_ray.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="425">
+                  <caret line="100" column="14" lean-forward="true" selection-start-line="100" selection-start-column="14" selection-end-line="100" selection-end-column="14" />
                 </state>
               </provider>
             </entry>
@@ -136,6 +147,7 @@
         <option value="$PROJECT_DIR$/scratchpad/ray_tf_test.py" />
         <option value="$PROJECT_DIR$/tensorqtl/test.py" />
         <option value="$PROJECT_DIR$/tensorqtl/tensorqtl.py" />
+        <option value="$PROJECT_DIR$/scratchpad/init_ray.py" />
       </list>
     </option>
   </component>
@@ -222,7 +234,7 @@
       <window_info content_ui="combo" id="Project" order="1" visible="true" weight="0.1566416" />
       <window_info id="Structure" order="2" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Inspection Results" order="0" weight="0.24195625" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="1" visible="true" weight="0.16347992" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="1" visible="true" weight="0.43785852" />
       <window_info anchor="bottom" id="Event Log" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Python Console" order="3" />
       <window_info anchor="bottom" id="Message" order="4" />
@@ -324,8 +336,15 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/tensorqtl/tensorqtl.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="237">
-          <caret line="1189" lean-forward="true" selection-start-line="1189" selection-end-line="1189" />
+        <state relative-caret-position="950">
+          <caret line="1311" lean-forward="true" selection-start-line="1311" selection-end-line="1311" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scratchpad/init_ray.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="425">
+          <caret line="100" column="14" lean-forward="true" selection-start-line="100" selection-start-column="14" selection-end-line="100" selection-end-column="14" />
         </state>
       </provider>
     </entry>

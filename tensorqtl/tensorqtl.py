@@ -1309,6 +1309,9 @@ def _calculate_association(genotype_t, phenotype_t, covariates_t,
     return _calculate_pval(r2_t, dof, maf_t, return_sparse=return_sparse,
                            r2_threshold=r2_threshold, return_r2=return_r2)
 
+
+
+
 @ray.remote
 def worker_task(ps, phenotype_df, covariates_df, interaction_s,
                     batch_size, return_sparse, pval_threshold, return_r2):
@@ -1399,7 +1402,7 @@ class ParameterServer(object):
 
         _ix_t = _get_sample_indexes(genotype_df.columns.tolist(), phenotype_df)
         self.sess = tf.Session()
-        print(ix_t)
+
         self.next_element = tf.gather(next_element, ix_t, axis=1)
 
     def fetch_g_iter(self):
