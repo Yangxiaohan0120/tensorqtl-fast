@@ -3,12 +3,14 @@
 import genotypeio
 import pandas as pd
 import tensorflow as tf
+from ray_functions import init_ray
+
 
 import tensorqtl
 
 tf.keras.backend.clear_session()
 
-ray_init(redis_max_memory=100000000000, object_store_memory=500000000000)
+init_ray(redis_max_memory=100000000000, object_store_memory=500000000000)
 
 # ray.init(redis_max_memory=100000000000,object_store_memory=500000000000)
 
