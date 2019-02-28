@@ -5,9 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="69858883-011b-4b23-832b-2cc9db16f081" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/scratchpad/init_ray.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tensorqtl/ray_functions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scratchpad/init_ray.py" beforeDir="false" afterPath="$PROJECT_DIR$/scratchpad/init_ray.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tensorqtl/tensorqtl.py" beforeDir="false" afterPath="$PROJECT_DIR$/tensorqtl/tensorqtl.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorqtl/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/tensorqtl/test.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -16,7 +18,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.7362556">
+    <splitter split-orientation="horizontal" split-proportion="0.8742857">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file pinned="false" current-in-tab="false">
@@ -31,17 +33,26 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/tensorqtl/tensorqtl.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="950">
-                  <caret line="1311" lean-forward="true" selection-start-line="1311" selection-end-line="1311" />
+                <state relative-caret-position="-1014">
+                  <caret line="172" column="44" lean-forward="true" selection-start-line="172" selection-start-column="44" selection-end-line="172" selection-end-column="44" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/scratchpad/init_ray.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="204">
+                  <caret line="97" column="32" selection-end-line="111" />
                 </state>
               </provider>
             </entry>
           </file>
           <file pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/scratchpad/init_ray.py">
+            <entry file="file://$PROJECT_DIR$/tensorqtl/ray_functions.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="425">
-                  <caret line="100" column="14" lean-forward="true" selection-start-line="100" selection-start-column="14" selection-end-line="100" selection-end-column="14" />
+                <state relative-caret-position="368">
+                  <caret line="69" lean-forward="true" selection-start-line="69" selection-end-line="69" />
                 </state>
               </provider>
             </entry>
@@ -59,16 +70,16 @@
       </split-first>
       <split-second>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file pinned="false" current-in-tab="false">
+          <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/tensorqtl/test.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="292">
-                  <caret line="36" lean-forward="true" selection-start-line="36" selection-end-line="36" />
+                <state relative-caret-position="-45">
+                  <caret line="7" lean-forward="true" selection-start-line="7" selection-end-line="7" />
                 </state>
               </provider>
             </entry>
           </file>
-          <file pinned="false" current-in-tab="true">
+          <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/tensorqtl/ray_tensorqtl.py">
               <provider selected="true" editor-type-id="text-editor">
                 <state relative-caret-position="962">
@@ -130,6 +141,7 @@
       <find>r2_threshold</find>
       <find>pval_threshold</find>
       <find>_initialize_data</find>
+      <find>genotype_t</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -145,9 +157,10 @@
         <option value="$USER_HOME$/anaconda3/envs/alphago/lib/python3.6/gzip.py" />
         <option value="$PROJECT_DIR$/scratchpad/map_ray_test.py" />
         <option value="$PROJECT_DIR$/scratchpad/ray_tf_test.py" />
+        <option value="$PROJECT_DIR$/scratchpad/init_ray.py" />
         <option value="$PROJECT_DIR$/tensorqtl/test.py" />
         <option value="$PROJECT_DIR$/tensorqtl/tensorqtl.py" />
-        <option value="$PROJECT_DIR$/scratchpad/init_ray.py" />
+        <option value="$PROJECT_DIR$/tensorqtl/ray_functions.py" />
       </list>
     </option>
   </component>
@@ -234,9 +247,9 @@
       <window_info content_ui="combo" id="Project" order="1" visible="true" weight="0.1566416" />
       <window_info id="Structure" order="2" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Inspection Results" order="0" weight="0.24195625" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="1" visible="true" weight="0.43785852" />
+      <window_info anchor="bottom" id="Terminal" order="1" weight="0.27670527" />
       <window_info anchor="bottom" id="Event Log" order="2" side_tool="true" />
-      <window_info anchor="bottom" id="Python Console" order="3" />
+      <window_info active="true" anchor="bottom" id="Python Console" order="3" visible="true" weight="0.24474187" />
       <window_info anchor="bottom" id="Message" order="4" />
       <window_info anchor="bottom" id="Find" order="5" />
       <window_info anchor="bottom" id="Run" order="6" />
@@ -320,10 +333,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/tensorqtl/test.py">
+    <entry file="file://$PROJECT_DIR$/scratchpad/init_ray.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="292">
-          <caret line="36" lean-forward="true" selection-start-line="36" selection-end-line="36" />
+        <state relative-caret-position="204">
+          <caret line="97" column="32" selection-end-line="111" />
         </state>
       </provider>
     </entry>
@@ -334,17 +347,24 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/tensorqtl/tensorqtl.py">
+    <entry file="file://$PROJECT_DIR$/tensorqtl/test.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="950">
-          <caret line="1311" lean-forward="true" selection-start-line="1311" selection-end-line="1311" />
+        <state relative-caret-position="-45">
+          <caret line="7" lean-forward="true" selection-start-line="7" selection-end-line="7" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/scratchpad/init_ray.py">
+    <entry file="file://$PROJECT_DIR$/tensorqtl/tensorqtl.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="425">
-          <caret line="100" column="14" lean-forward="true" selection-start-line="100" selection-start-column="14" selection-end-line="100" selection-end-column="14" />
+        <state relative-caret-position="-1014">
+          <caret line="172" column="44" lean-forward="true" selection-start-line="172" selection-start-column="44" selection-end-line="172" selection-end-column="44" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tensorqtl/ray_functions.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="368">
+          <caret line="69" lean-forward="true" selection-start-line="69" selection-end-line="69" />
         </state>
       </provider>
     </entry>

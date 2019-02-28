@@ -72,14 +72,23 @@ class SimpleLogger(object):
             self.log.flush()
 
 
-output_dtype_dict = {'num_var': np.int32, 'beta_shape1': np.float32,
-    'beta_shape2'             : np.float32, 'true_df': np.float32,
-    'pval_true_df'            : np.float64, 'variant_id': str,
-    'tss_distance'            : np.int32, 'ma_samples': np.int32,
-    'ma_count'                : np.int32, 'maf': np.float32,
-    'ref_factor'              : np.int32, 'pval_nominal': np.float64,
-    'slope'                   : np.float32, 'slope_se': np.float32,
-    'pval_perm'               : np.float64, 'pval_beta': np.float64, }
+output_dtype_dict = {
+    'num_var'                 : np.int32,
+    'beta_shape1'             : np.float32,
+    'beta_shape2'             : np.float32,
+    'true_df'                 : np.float32,
+    'pval_true_df'            : np.float64,
+    'variant_id'              : str,
+    'tss_distance'            : np.int32,
+    'ma_samples'              : np.int32,
+    'ma_count'                : np.int32,
+    'maf'                     : np.float32,
+    'ref_factor'              : np.int32,
+    'pval_nominal'            : np.float64,
+    'slope'                   : np.float32,
+    'slope_se'                : np.float32,
+    'pval_perm'               : np.float64,
+    'pval_beta'               : np.float64, }
 
 
 # ------------------------------------------------------------------------------

@@ -1,13 +1,19 @@
-import os
+#!/bin/env/python
+#-*- encoding: utf-8 -*-
+"""
+Ray helper functions
+"""
+from __future__ import print_function
+from __future__ import division
 import subprocess
-
 import ray
+import os
 
+# Script for creating new workers
 create_worker = """
 ray start --redis-address $2 
 sleep 3600
 """
-
 
 def get_ip_addresses(n_workers: int, wait: bool = True) -> set:
     """
@@ -32,31 +38,30 @@ def get_ip_addresses(n_workers: int, wait: bool = True) -> set:
 
 
 def init_ray(num_workers: int = 5, RUN_CLUSTER: bool = True,
-             ON_DEVCLOUD: bool = False,
-             ON_VLAB: bool = True) -> None:
+             cluster_name: str = 'vLab', **kwargs) -> None:
     """
     Initialize a ray compute cluster
 
     :param num_workers: Number of ray workers, default = 5
     """
-    assert isinstance(num_workers, int), (
-        "Invalid num_workers arg type: {}".format(
-            type(num_workers).__name__
-        ))
+    for var,_type in zip((cluster_name,num_workers),(str,int)):
+        assert isinstance(var,_type), (
+            "Invalid {} arg type: {}".format(
+                type(var).__name__
+            ))
+
 
     if RUN_CLUSTER:
 
         if not ON_DEVCLOUD and not ON_VLAB:
             raise UserWarning("Select vLab or DevCloud")
 
-        if ON_VLAB and ON_DEVCLOUD:
-            raise UserWarning("Can be on DevCloud or vLab, not both")
 
-        if ON_VLAB:
+        if cluster_name.upper() == 'VLAB':
             qsub_non_excl = '/opt/pbs/default/bin/qsub'
             qsub_excl = '/opt/pbs/bin/qsub'
 
-        if ON_DEVCLOUD:
+        if cluster_name.upper() == 'DEVCLOUD':
             qsub_non_excl = '/usr/local/bin/qsub'
             qsub_excl = qsub_non_excl
 
@@ -77,7 +82,7 @@ def init_ray(num_workers: int = 5, RUN_CLUSTER: bool = True,
                 worker_cmd = output[0][4:]
                 head_ip_addr = worker_cmd.split(' ')[-1]
 
-                ray.init(radis_address=head_ip_addr)
+                ray.init(radis_address=head_ip_addr,kwargs)
 
                 for i in range(num_workers):
 
@@ -103,9 +108,5 @@ def init_ray(num_workers: int = 5, RUN_CLUSTER: bool = True,
             ray.init()
 
 
-def main():
-    init_ray()
-
-
 if __name__ == "__main__":
-    main()
+    init_ray()
