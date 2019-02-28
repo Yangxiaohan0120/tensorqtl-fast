@@ -5,11 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="69858883-011b-4b23-832b-2cc9db16f081" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/tensorqtl/ray_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scratchpad/init_ray.py" beforeDir="false" afterPath="$PROJECT_DIR$/scratchpad/init_ray.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorqtl/tensorqtl.py" beforeDir="false" afterPath="$PROJECT_DIR$/tensorqtl/tensorqtl.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorqtl/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/tensorqtl/test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorqtl/ray_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/tensorqtl/ray_functions.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -51,8 +47,8 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/tensorqtl/ray_functions.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="368">
-                  <caret line="69" lean-forward="true" selection-start-line="69" selection-end-line="69" />
+                <state relative-caret-position="174">
+                  <caret line="42" lean-forward="true" selection-start-line="42" selection-end-line="42" />
                 </state>
               </provider>
             </entry>
@@ -363,8 +359,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/tensorqtl/ray_functions.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="368">
-          <caret line="69" lean-forward="true" selection-start-line="69" selection-end-line="69" />
+        <state relative-caret-position="174">
+          <caret line="42" lean-forward="true" selection-start-line="42" selection-end-line="42" />
         </state>
       </provider>
     </entry>

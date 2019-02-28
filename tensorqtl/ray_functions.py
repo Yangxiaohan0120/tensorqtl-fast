@@ -1,23 +1,30 @@
 #!/bin/env/python
-#-*- encoding: utf-8 -*-
+# -*- encoding: utf-8 -*-
 """
 Ray helper functions
 """
-from __future__ import print_function
-from __future__ import division
-import subprocess
-import ray
+from __future__ import division, print_function
+
 import os
+import subprocess
+import time
+
+import ray
 
 # Script for creating new workers
 create_worker = """
-ray start --redis-address $2 
+ray start --redis-address $addr
 sleep 3600
 """
+
 
 def get_ip_addresses(n_workers: int, wait: bool = True) -> set:
     """
     Get the set of connected ip addresses in a ray compute cluster
+
+    :param n_workers: Number of ray workers
+    :param wait: Whether to wait for the whole set of address or return
+        the set of currently connected
     """
 
     @ray.remote
@@ -28,7 +35,7 @@ def get_ip_addresses(n_workers: int, wait: bool = True) -> set:
     if wait:
         while True:
             ips = set(ray.get([f.remote() for _ in range(1000)]))
-            time.sleep(1e-2)
+            time.sleep(5e-1)
             if len(ips) >= n_workers + 1:
                 break
     else:
@@ -44,18 +51,16 @@ def init_ray(num_workers: int = 5, RUN_CLUSTER: bool = True,
 
     :param num_workers: Number of ray workers, default = 5
     """
-    for var,_type in zip((cluster_name,num_workers),(str,int)):
-        assert isinstance(var,_type), (
+    arg_names = ['cluster_name','num_workers']
+    args = [cluster_name, num_workers]
+    for var, _type in zip(args,(str, int)):
+        assert isinstance(var, _type), (
             "Invalid {} arg type: {}".format(
+                arg_names[args.index(var)]
                 type(var).__name__
             ))
 
-
     if RUN_CLUSTER:
-
-        if not ON_DEVCLOUD and not ON_VLAB:
-            raise UserWarning("Select vLab or DevCloud")
-
 
         if cluster_name.upper() == 'VLAB':
             qsub_non_excl = '/opt/pbs/default/bin/qsub'
@@ -68,7 +73,7 @@ def init_ray(num_workers: int = 5, RUN_CLUSTER: bool = True,
         with open('create_worker', 'w') as f:
             f.write(create_worker)
 
-        if ON_VLAB or ON_DEVCLOUD:
+        if cluster_name.upper() in ('VLAB', 'DEVCLOUD'):
 
             result = subprocess.run(['ray', 'start', '--head'],
                                     stderr=subprocess.PIPE,
@@ -82,17 +87,19 @@ def init_ray(num_workers: int = 5, RUN_CLUSTER: bool = True,
                 worker_cmd = output[0][4:]
                 head_ip_addr = worker_cmd.split(' ')[-1]
 
-                ray.init(radis_address=head_ip_addr,kwargs)
+                ray.init(redis_address=head_ip_addr, **kwargs)
 
                 for i in range(num_workers):
 
-                    worker_cmd = '{} create_worker {}'.format(
+                    worker_cmd = '{} -lselect=1 -lplace=excl create_worker -v ' \
+                                 'addr={}'.format(
                         qsub_non_excl, head_ip_addr)
 
                     status = os.system(worker_cmd)
 
                     if status != 0:
-                        worker_cmd = '{} create_worker {}'.format(
+                        worker_cmd = '{} -lselect=1 -lplace=excl ' \
+                                     'create_worker -v addr={}'.format(
                             qsub_excl, head_ip_addr)
 
                         status = os.system(worker_cmd)
@@ -105,8 +112,14 @@ def init_ray(num_workers: int = 5, RUN_CLUSTER: bool = True,
             else:
                 raise Exception("Ray unable to start")
         else:
-            ray.init()
+            raise UserWarning("Invalid cluster name: {}".format(cluster_name))
+    else:
+        ray.init()
 
 
 if __name__ == "__main__":
     init_ray()
+
+    while True:
+        print(get_ip_addresses(5, wait=False))
+        time.sleep(3)
