@@ -1349,7 +1349,7 @@ def worker_task(ps, phenotype_df, covariates_df, interaction_s,
     g_iter = ray.get(ps.fetch_g_iter.remote())
 
     # Precision change test
-    g_iter = tf.cast(g_iter,tf.float32)
+    g_iter = np.float32(g_iter)
 
     if interaction_s is None:
         genotypes, phenotypes, covariates = _initialize_data(phenotype_df,
@@ -1390,9 +1390,8 @@ def worker_task(ps, phenotype_df, covariates_df, interaction_s,
                                    return_sparse=return_sparse,
                                    r2_threshold=r2_threshold)
 
-
     output = sess.run(x, feed_dict={genotypes: g_iter})
-    print("Worker task complete!")
+
     del g_iter, genotypes, phenotypes, covariates
     return output
 
@@ -1508,7 +1507,6 @@ def map_trans(genotype_df, phenotype_df, covariates_df,
     pval_list = []
     maf_list = []
     r2_list = []
-
 
     workers =  [worker_task.remote(ps, phenotype_df, covariates_df, interaction_s,
             batch_size, return_sparse,pval_threshold,return_r2)
