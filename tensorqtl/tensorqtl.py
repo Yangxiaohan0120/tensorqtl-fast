@@ -90,18 +90,18 @@ output_dtype_dict = {
     'beta_shape1' : np.float32,
     'beta_shape2' : np.float32,
     'true_df'     : np.float32,
-    'pval_true_df': np.float64,
+    'pval_true_df': np.float32,
     'variant_id'  : str,
     'tss_distance': np.int32,
     'ma_samples'  : np.int32,
     'ma_count'    : np.int32,
     'maf'         : np.float32,
     'ref_factor'  : np.int32,
-    'pval_nominal': np.float64,
+    'pval_nominal': np.float32,
     'slope'       : np.float32,
     'slope_se'    : np.float32,
-    'pval_perm'   : np.float64,
-    'pval_beta'   : np.float64, }
+    'pval_perm'   : np.float32,
+    'pval_beta'   : np.float32, }
 
 
 # ------------------------------------------------------------------------------
@@ -200,12 +200,12 @@ def calculate_pval(r2_t, dof, maf_t=None, return_sparse=True, r2_threshold=0,
         ix = tf.where(r2_t >= r2_threshold, name='threshold_r2')
         r2_t = tf.gather_nd(r2_t, ix)
 
-    r2_t = tf.cast(r2_t, tf.float64)
+    r2_t = tf.cast(r2_t, tf.float32)
 
     tstat = tf.sqrt(tf.divide(tf.scalar_mul(dof, r2_t), 1 - r2_t), name='tstat')
-    tdist = tf.contrib.distributions.StudentT(np.float64(dof),
-                                              loc=np.float64(0.0),
-                                              scale=np.float64(1.0))
+    tdist = tf.contrib.distributions.StudentT(np.float32(dof),
+                                              loc=np.float32(0.0),
+                                              scale=np.float32(1.0))
 
     if return_sparse:
         pval_t = tf.SparseTensor(ix,
@@ -368,7 +368,7 @@ def calculate_cis_permutations(genotypes_t, range_t, phenotype_t, covariates_t,
     corr_t.set_shape([None, None])
     r2_perm_t = tf.cast(tf.reduce_max(
         tf.boolean_mask(corr_t, ~tf.reduce_any(tf.is_nan(corr_t), 1)), axis=0),
-        tf.float64)
+        tf.float32)
 
     ix = tf.argmax(tf.pow(r_nominal_t, 2))
     return r_nominal_t[ix], std_ratio_t[ix], range_t[ix], r2_perm_t, \
@@ -1032,12 +1032,12 @@ def calculate_nominal_interaction(genotypes_t, phenotype_t, interaction_t, dof,
     Cx = Xinv * tf.reshape(rss_t, [-1, 1, 1]) / dof
     b_se_t = tf.sqrt(tf.matrix_diag_part(Cx))
     b_t = tf.squeeze(b_t)
-    tstat_t = tf.divide(tf.cast(b_t, tf.float64), tf.cast(b_se_t, tf.float64))
+    tstat_t = tf.divide(tf.cast(b_t, tf.float32), tf.cast(b_se_t, tf.float32))
     # weird tf bug? without cast/copy, divide appears to modify b_se_t??
     # calculate pval
-    tdist = tf.contrib.distributions.StudentT(np.float64(dof),
-                                              loc=np.float64(0.0),
-                                              scale=np.float64(1.0))
+    tdist = tf.contrib.distributions.StudentT(np.float32(dof),
+                                              loc=np.float32(0.0),
+                                              scale=np.float32(1.0))
     pval_t = tf.scalar_mul(2, tdist.cdf(-tf.abs(tstat_t)))
 
     # calculate MAF
@@ -1237,13 +1237,13 @@ def _calculate_pval(r2_t, dof, maf_t=None, return_sparse=True,
         ix = tf.where(r2_t >= r2_threshold, name='threshold_r2')
         r2_t = tf.gather_nd(r2_t, ix)
 
-    r2_t = tf.cast(r2_t, tf.float64)
+    r2_t = tf.cast(r2_t, tf.float32)
 
     tstat = tf.sqrt(tf.divide(tf.scalar_mul(dof, r2_t), 1 - r2_t),
                     name='tstat')
-    tdist = tf.contrib.distributions.StudentT(np.float64(dof),
-                                              loc=np.float64(0.0),
-                                              scale=np.float64(1.0))
+    tdist = tf.contrib.distributions.StudentT(np.float32(dof),
+                                              loc=np.float32(0.0),
+                                              scale=np.float32(1.0))
 
     if return_sparse:
         pval_t = tf.SparseTensor(ix,
@@ -1579,7 +1579,7 @@ def map_trans(genotype_df, phenotype_df, covariates_df,
     #         np.array([v, phenotype_ids, pval.values[ix], maf[ix]]).T,
     #         columns=['variant_id', 'phenotype_id', 'pval', 'maf'])
     #
-    #     pval_df['pval'] = pval_df['pval'].astype(np.float64)
+    #     pval_df['pval'] = pval_df['pval'].astype(np.float32)
     #     pval_df['maf'] = pval_df['maf'].astype(np.float32)
     #     if return_r2:
     #         pval_df['r2'] = r2[ix].astype(np.float32)
@@ -1964,7 +1964,7 @@ def map_trans_tfrecord(vcf_tfrecord, phenotype_df, covariates_df,
                 maf[ix]]).T,
                                columns=['variant_id', 'phenotype_id', 'pval',
                                    'maf'])
-        pval_df['pval'] = pval_df['pval'].astype(np.float64)
+        pval_df['pval'] = pval_df['pval'].astype(np.float32)
         pval_df['maf'] = pval_df['maf'].astype(np.float32)
     else:
         # truncate last batch
@@ -2053,15 +2053,15 @@ def main():
                              'columns: phenotype_id, group_id')
     parser.add_argument('--window', default=1000000, type=np.int32,
                         help='Cis-window size, in bases. Default: 1000000.')
-    parser.add_argument('--pval_threshold', default=None, type=np.float64,
+    parser.add_argument('--pval_threshold', default=None, type=np.float32,
                         help='Output only significant phenotype-variant pairs '
                              'with a p-value below threshold. Default: 1e-5 '
                              'for trans-QTL')
-    parser.add_argument('--maf_threshold', default=None, type=np.float64,
+    parser.add_argument('--maf_threshold', default=None, type=np.float32,
                         help='Include only genotypes with minor allele '
                              'frequency >=maf_threshold. Default: 0')
     parser.add_argument('--maf_threshold_interaction', default=0.05,
-                        type=np.float64,
+                        type=np.float32,
                         help='MAF threshold for interactions, applied to '
                              'lower and upper half of samples')
     parser.add_argument('--return_dense', action='store_true',
@@ -2077,9 +2077,9 @@ def main():
     parser.add_argument('--batch_size', type=int, default=50000,
                         help='Batch size. Reduce this if encountering OOM '
                              'errors.')
-    parser.add_argument('--fdr', default=0.05, type=np.float64,
+    parser.add_argument('--fdr', default=0.05, type=np.float32,
                         help='FDR for cis-QTLs')
-    parser.add_argument('--qvalue_lambda', default=None, type=np.float64,
+    parser.add_argument('--qvalue_lambda', default=None, type=np.float32,
                         help='lambda parameter for pi0est in qvalue.')
     parser.add_argument('-o', '--output_dir', default='.',
                         help='Output directory')

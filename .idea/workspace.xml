@@ -5,7 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="69858883-011b-4b23-832b-2cc9db16f081" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/tensorqtl/create_worker" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/tensorqtl/tensorqtl.py" beforeDir="false" afterPath="$PROJECT_DIR$/tensorqtl/tensorqtl.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -30,8 +29,8 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/tensorqtl/tensorqtl.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="223">
-                  <caret line="1512" column="22" lean-forward="true" selection-start-line="1512" selection-start-column="22" selection-end-line="1512" selection-end-column="22" />
+                <state relative-caret-position="149">
+                  <caret line="97" column="31" lean-forward="true" selection-start-line="97" selection-start-column="31" selection-end-line="97" selection-end-column="31" />
                 </state>
               </provider>
             </entry>
@@ -133,6 +132,7 @@
       <find>ray.init</find>
       <find>for</find>
       <find>pd.</find>
+      <find>float64</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -354,8 +354,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/tensorqtl/tensorqtl.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="223">
-          <caret line="1512" column="22" lean-forward="true" selection-start-line="1512" selection-start-column="22" selection-end-line="1512" selection-end-column="22" />
+        <state relative-caret-position="149">
+          <caret line="97" column="31" lean-forward="true" selection-start-line="97" selection-start-column="31" selection-end-line="97" selection-end-column="31" />
         </state>
       </provider>
     </entry>
