@@ -8,6 +8,8 @@ import os
 import subprocess
 import sys
 import time
+import tqdm
+
 from collections import OrderedDict
 from datetime import datetime
 
@@ -37,6 +39,21 @@ if not has_rpy2:
     print(
         "Warning: 'rfunc' cannot be imported. R and the 'rpy2' Python package "
         "are needed.")
+
+
+OMP_NUM_THREADS = 4
+INTEROP = 2
+INTRAOP = OMP_NUM_THREADS
+KMP_BLOCKTIME = 0
+KMP_SETTINGS = 1
+KMP_AFFINITY = 'granularity=fine,verbose,compact,1,0'
+
+
+os.environ["KMP_BLOCKTIME"] = str(KMP_BLOCKTIME)
+os.environ["KMP_SETTINGS"] = str(KMP_SETTINGS)
+os.environ["KMP_AFFINITY"]= KMP_AFFINITY
+if FLAGS.num_intra_threads > 0:
+    os.environ["OMP_NUM_THREADS"]= str(OMP_NUM_THREADS)
 
 
 def timeit(method):
@@ -74,21 +91,21 @@ class SimpleLogger(object):
 
 output_dtype_dict = {
     'num_var'                 : np.int32,
-    'beta_shape1'             : np.float16,
-    'beta_shape2'             : np.float16,
-    'true_df'                 : np.float16,
-    'pval_true_df'            : np.float32,
+    'beta_shape1'             : np.float32,
+    'beta_shape2'             : np.float32,
+    'true_df'                 : np.float32,
+    'pval_true_df'            : np.float64,
     'variant_id'              : str,
     'tss_distance'            : np.int32,
     'ma_samples'              : np.int32,
     'ma_count'                : np.int32,
-    'maf'                     : np.float16,
+    'maf'                     : np.float32,
     'ref_factor'              : np.int32,
-    'pval_nominal'            : np.float32,
-    'slope'                   : np.float16,
-    'slope_se'                : np.float16,
-    'pval_perm'               : np.float32,
-    'pval_beta'               : np.float32, }
+    'pval_nominal'            : np.float64,
+    'slope'                   : np.float32,
+    'slope_se'                : np.float32,
+    'pval_perm'               : np.float64,
+    'pval_beta'               : np.float64, }
 
 
 # ------------------------------------------------------------------------------
@@ -136,7 +153,7 @@ def center_normalize(M_t, axis=0):
 def calculate_maf(genotype_t):
     """Calculate minor allele frequency"""
     af_t = tf.reduce_sum(genotype_t, 1) / (
-            2 * tf.cast(tf.shape(genotype_t)[1], tf.float16))
+            2 * tf.cast(tf.shape(genotype_t)[1], tf.float32))
     return tf.where(af_t > 0.5, 1 - af_t, af_t)
 
 
@@ -187,12 +204,12 @@ def calculate_pval(r2_t, dof, maf_t=None, return_sparse=True, r2_threshold=0,
         ix = tf.where(r2_t >= r2_threshold, name='threshold_r2')
         r2_t = tf.gather_nd(r2_t, ix)
 
-    r2_t = tf.cast(r2_t, tf.float32)
+    r2_t = tf.cast(r2_t, tf.float64)
 
     tstat = tf.sqrt(tf.divide(tf.scalar_mul(dof, r2_t), 1 - r2_t), name='tstat')
-    tdist = tf.contrib.distributions.StudentT(np.float32(dof),
-                                              loc=np.float32(0.0),
-                                              scale=np.float32(1.0))
+    tdist = tf.contrib.distributions.StudentT(np.float64(dof),
+                                              loc=np.float64(0.0),
+                                              scale=np.float64(1.0))
 
     if return_sparse:
         pval_t = tf.SparseTensor(ix,
@@ -257,7 +274,7 @@ def _get_sample_indexes(vcf_sample_ids, phenotype_df):
 
 
 def initialize_data(phenotype_df, covariates_df, batch_size, interaction_s=None,
-                    dtype=tf.float16):
+                    dtype=tf.float32):
     """Generate placeholders"""
     num_samples = phenotype_df.shape[1]
     genotype_t = tf.placeholder(dtype, shape=[batch_size, num_samples])
@@ -355,7 +372,7 @@ def calculate_cis_permutations(genotypes_t, range_t, phenotype_t, covariates_t,
     corr_t.set_shape([None, None])
     r2_perm_t = tf.cast(tf.reduce_max(
         tf.boolean_mask(corr_t, ~tf.reduce_any(tf.is_nan(corr_t), 1)), axis=0),
-        tf.float32)
+        tf.float64)
 
     ix = tf.argmax(tf.pow(r_nominal_t, 2))
     return r_nominal_t[ix], std_ratio_t[ix], range_t[ix], r2_perm_t, \
@@ -437,14 +454,19 @@ def map_cis(plink_reader, phenotype_df, phenotype_pos_df, covariates_df,
         np.array([np.random.permutation(ix) for i in range(nperm)]))
 
     # placeholders
-    covariates_t = tf.constant(covariates_df.values, dtype=tf.float16)
-    genotype_t = tf.placeholder(dtype=tf.float16, shape=(None))
-    phenotype_t = tf.placeholder(dtype=tf.float16, shape=(None))
+    covariates_t = tf.constant(covariates_df.values, dtype=tf.float32)
+    genotype_t = tf.placeholder(dtype=tf.float32, shape=(None))
+    phenotype_t = tf.placeholder(dtype=tf.float32, shape=(None))
 
     # iterate over chromosomes
     res_df = []
     start_time = time.time()
-    with tf.Session() as sess:
+
+    config = tf.ConfigProto()
+    config.intra_op_parallelism_threads = INTRAOP
+    config.inter_op_parallelism_threads = INTEROP
+
+    with tf.Session(config=config) as sess:
         for chrom in phenotype_pos_df.loc[phenotype_df.index, 'chr'].unique():
             logger.write('  Mapping chromosome {}'.format(chrom))
             igc = genotypeio.InputGeneratorCis(plink_reader, phenotype_df.loc[
@@ -452,7 +474,7 @@ def map_cis(plink_reader, phenotype_df, phenotype_pos_df, covariates_df,
 
             dataset = tf.data.Dataset.from_generator(igc.generate_data,
                                                      output_types=(
-                                                         tf.float16, tf.float16,
+                                                         tf.float32, tf.float32,
                                                          tf.int32, tf.string))
             dataset = dataset.prefetch(1)
             iterator = dataset.make_one_shot_iterator()
@@ -591,10 +613,10 @@ def map_cis_independent(plink_reader, summary_df, phenotype_df,
         np.array([np.random.permutation(ix) for i in range(nperm)]))
 
     # placeholders
-    genotypes_t = tf.placeholder(dtype=tf.float16, shape=[None, None])
+    genotypes_t = tf.placeholder(dtype=tf.float32, shape=[None, None])
     range_t = tf.placeholder(dtype=tf.int32, shape=[None])
-    phenotype_t = tf.placeholder(dtype=tf.float16, shape=[None])
-    covariates_t = tf.placeholder(dtype=tf.float16, shape=[None, None])
+    phenotype_t = tf.placeholder(dtype=tf.float32, shape=[None])
+    covariates_t = tf.placeholder(dtype=tf.float32, shape=[None, None])
 
     # graph
     r_nominal_t, std_ratio_t, varpos_t, r2_perm_t, g_t, ng_t = \
@@ -637,7 +659,7 @@ def map_cis_independent(plink_reader, summary_df, phenotype_df,
                     ig = igc.chr_genotypes[ix_dict[variant_id]]
                     dosage_dict[variant_id] = ig
                     covariates = np.hstack(
-                        [covariates, ig.reshape(-1, 1)]).astype(np.float16)
+                        [covariates, ig.reshape(-1, 1)]).astype(np.float32)
                     dof = phenotype_df.shape[1] - 2 - covariates.shape[1]
                     # find next variant
                     r_nom, s_r, var_ix, r2_perm, g, ng = sess.run(
@@ -871,9 +893,9 @@ def calculate_cis_nominal(genotypes_t, phenotype_t, covariates_t, dof):
     ix_t = af_t <= 0.5
     maf_t = tf.where(ix_t, af_t, 1 - af_t)
     # calculate MA samples and counts
-    m = tf.cast(genotypes_t > 0.5, tf.float16)
+    m = tf.cast(genotypes_t > 0.5, tf.float32)
     a = tf.reduce_sum(m, 1)
-    b = tf.reduce_sum(tf.cast(genotypes_t < 1.5, tf.float16), 1)
+    b = tf.reduce_sum(tf.cast(genotypes_t < 1.5, tf.float32), 1)
     ma_samples_t = tf.where(ix_t, a, b)
     m = tf.multiply(m, genotypes_t)
     a = tf.reduce_sum(m, 1)
@@ -901,9 +923,9 @@ def map_cis_nominal(plink_reader, phenotype_df, phenotype_pos_df, covariates_df,
     logger.write('  * {} variants'.format(plink_reader.bed.shape[0]))
 
     # placeholders
-    covariates_t = tf.constant(covariates_df.values, dtype=tf.float16)
-    genotype_t = tf.placeholder(dtype=tf.float16, shape=(None))
-    phenotype_t = tf.placeholder(dtype=tf.float16, shape=(None))
+    covariates_t = tf.constant(covariates_df.values, dtype=tf.float32)
+    genotype_t = tf.placeholder(dtype=tf.float32, shape=(None))
+    phenotype_t = tf.placeholder(dtype=tf.float32, shape=(None))
     dof = phenotype_df.shape[1] - 2 - covariates_df.shape[1]
 
     with tf.Session() as sess:
@@ -916,7 +938,7 @@ def map_cis_nominal(plink_reader, phenotype_df, phenotype_pos_df, covariates_df,
 
             dataset = tf.data.Dataset.from_generator(igc.generate_data,
                                                      output_types=(
-                                                         tf.float16, tf.float16,
+                                                         tf.float32, tf.float32,
                                                          tf.int32, tf.string))
             dataset = dataset.prefetch(1)
             iterator = dataset.make_one_shot_iterator()
@@ -984,7 +1006,7 @@ def calculate_nominal_interaction(genotypes_t, phenotype_t, interaction_t, dof,
 
     s = tf.shape(genotypes_t)
     ng = s[0]
-    ns = tf.cast(s[1], tf.float16)
+    ns = tf.cast(s[1], tf.float32)
 
     g0_t = genotypes_t - tf.reduce_mean(genotypes_t, axis=1, keepdims=True)
     gi_t = tf.multiply(genotypes_t, interaction_t)
@@ -1014,12 +1036,12 @@ def calculate_nominal_interaction(genotypes_t, phenotype_t, interaction_t, dof,
     Cx = Xinv * tf.reshape(rss_t, [-1, 1, 1]) / dof
     b_se_t = tf.sqrt(tf.matrix_diag_part(Cx))
     b_t = tf.squeeze(b_t)
-    tstat_t = tf.divide(tf.cast(b_t, tf.float32), tf.cast(b_se_t, tf.float32))
+    tstat_t = tf.divide(tf.cast(b_t, tf.float64), tf.cast(b_se_t, tf.float64))
     # weird tf bug? without cast/copy, divide appears to modify b_se_t??
     # calculate pval
-    tdist = tf.contrib.distributions.StudentT(np.float32(dof),
-                                              loc=np.float32(0.0),
-                                              scale=np.float32(1.0))
+    tdist = tf.contrib.distributions.StudentT(np.float64(dof),
+                                              loc=np.float64(0.0),
+                                              scale=np.float64(1.0))
     pval_t = tf.scalar_mul(2, tdist.cdf(-tf.abs(tstat_t)))
 
     # calculate MAF
@@ -1028,9 +1050,9 @@ def calculate_nominal_interaction(genotypes_t, phenotype_t, interaction_t, dof,
     ix_t = af_t <= 0.5
     maf_t = tf.where(ix_t, af_t, 1 - af_t)
     # calculate MA samples and counts
-    m = tf.cast(genotypes_t > 0.5, tf.float16)
+    m = tf.cast(genotypes_t > 0.5, tf.float32)
     a = tf.reduce_sum(m, 1)
-    b = tf.reduce_sum(tf.cast(genotypes_t < 1.5, tf.float16), 1)
+    b = tf.reduce_sum(tf.cast(genotypes_t < 1.5, tf.float32), 1)
     ma_samples_t = tf.where(ix_t, a, b)
     m = tf.multiply(m, genotypes_t)
     a = tf.reduce_sum(m, 1)
@@ -1060,10 +1082,10 @@ def map_cis_interaction_nominal(plink_reader, phenotype_df, phenotype_pos_df,
     logger.write('  * {} variants'.format(plink_reader.bed.shape[0]))
     logger.write('  * including interaction term')
 
-    covariates_t = tf.constant(covariates_df.values, dtype=tf.float16)
+    covariates_t = tf.constant(covariates_df.values, dtype=tf.float32)
     dof = phenotype_df.shape[1] - 4 - covariates_df.shape[1]
     interaction_t = tf.constant(interaction_s.values.reshape(1, -1),
-                                dtype=tf.float16)  # 1 x n
+                                dtype=tf.float32)  # 1 x n
     interaction_mask_t = tf.constant(interaction_s >= interaction_s.median())
     residualizer = Residualizer(covariates_t)
 
@@ -1078,7 +1100,7 @@ def map_cis_interaction_nominal(plink_reader, phenotype_df, phenotype_pos_df,
 
             dataset = tf.data.Dataset.from_generator(igc.generate_data,
                                                      output_types=(
-                                                         tf.float16, tf.float16,
+                                                         tf.float32, tf.float32,
                                                          tf.int32, tf.string))
             dataset = dataset.prefetch(1)
             iterator = dataset.make_one_shot_iterator()
@@ -1161,7 +1183,7 @@ Target function
 
 def _initialize_data(phenotype_df, covariates_df, batch_size,
                      interaction_s=None,
-                     dtype=tf.float16):
+                     dtype=tf.float32):
     """Generate placeholders"""
     num_samples = phenotype_df.shape[1]
     genotype_t = tf.placeholder(dtype, shape=[batch_size, num_samples])
@@ -1181,7 +1203,7 @@ def _initialize_data(phenotype_df, covariates_df, batch_size,
 
 def initialize_data(phenotype_df, covariates_df, batch_size,
                     interaction_s=None,
-                    dtype=tf.float16):
+                    dtype=tf.float32):
     """Generate placeholders"""
     num_samples = phenotype_df.shape[1]
     genotype_t = tf.placeholder(dtype, shape=[batch_size, num_samples])
@@ -1202,7 +1224,7 @@ def initialize_data(phenotype_df, covariates_df, batch_size,
 def _calculate_maf(genotype_t):
     """Calculate minor allele frequency"""
     af_t = tf.reduce_sum(genotype_t, 1) / (
-            2 * tf.cast(tf.shape(genotype_t)[1], tf.float16))
+            2 * tf.cast(tf.shape(genotype_t)[1], tf.float32))
     return tf.where(af_t > 0.5, 1 - af_t, af_t)
 
 # -------------------------------------------------------------------------
@@ -1216,13 +1238,13 @@ def _calculate_pval(r2_t, dof, maf_t=None, return_sparse=True,
         ix = tf.where(r2_t >= r2_threshold, name='threshold_r2')
         r2_t = tf.gather_nd(r2_t, ix)
 
-    r2_t = tf.cast(r2_t, tf.float32)
+    r2_t = tf.cast(r2_t, tf.float64)
 
     tstat = tf.sqrt(tf.divide(tf.scalar_mul(dof, r2_t), 1 - r2_t),
                     name='tstat')
-    tdist = tf.contrib.distributions.StudentT(np.float32(dof),
-                                              loc=np.float32(0.0),
-                                              scale=np.float32(1.0))
+    tdist = tf.contrib.distributions.StudentT(np.float64(dof),
+                                              loc=np.float64(0.0),
+                                              scale=np.float64(1.0))
 
     if return_sparse:
         pval_t = tf.SparseTensor(ix,
@@ -1326,15 +1348,22 @@ def worker_task(ps, phenotype_df, covariates_df, interaction_s,
                     batch_size, return_sparse, pval_threshold, return_r2):
     g_iter = ray.get(ps.fetch_g_iter.remote())
 
+    # Precision change test
+    g_iter = tf.cast(g_iter,tf.float32)
+
     if interaction_s is None:
         genotypes, phenotypes, covariates = _initialize_data(phenotype_df,
-            covariates_df, batch_size=batch_size, dtype=tf.float16)
+            covariates_df, batch_size=batch_size, dtype=tf.float32)
     else:
         genotypes, phenotypes, covariates, interaction = initialize_data(
             phenotype_df, covariates_df, batch_size=batch_size,
             interaction_s=interaction_s)
 
-    sess = tf.Session()
+    config = tf.ConfigProto()
+    config.intra_op_parallelism_threads = INTRAOP
+    config.inter_op_parallelism_threads = INTEROP
+
+    sess = tf.Session(config=config)
 
     init_op = tf.group(tf.global_variables_initializer(),
                        tf.local_variables_initializer())
@@ -1377,6 +1406,8 @@ class ParameterServer(object):
                  return_r2=False, batch_size=20000, logger=None, verbose=True):
         """Run trans-QTL mapping from genotypes in memory"""
 
+        self.complete_tasks = 0
+
         if logger is None:
             logger = SimpleLogger(verbose=verbose)
         assert np.all(phenotype_df.columns == covariates_df.index)
@@ -1394,12 +1425,12 @@ class ParameterServer(object):
             logger.write('  * including interaction term')
 
         # # with tf.device('/cpu:0'):
-        # Changed from float16 to float16
+        # Changed from float32 to float32
         ggt = genotypeio.GenotypeGeneratorTrans(genotype_df.values,
                                                 batch_size=batch_size,
-                                                dtype=np.float16)
+                                                dtype=np.float32)
 
-        # Changed from float16 to float16
+        # Changed from float32 to float32
         dataset_genotypes = tf.data.Dataset.from_generator(ggt.generate_data,
                                                            output_types=tf.float16)
         dataset_genotypes = dataset_genotypes.prefetch(10)
@@ -1410,12 +1441,24 @@ class ParameterServer(object):
         ix_t = get_sample_indexes(genotype_df.columns.tolist(), phenotype_df)
 
         _ix_t = _get_sample_indexes(genotype_df.columns.tolist(), phenotype_df)
-        self.sess = tf.Session()
+
+        config = tf.ConfigProto()
+        config.intra_op_parallelism_threads = INTRAOP
+        config.inter_op_parallelism_threads = INTEROP
+
+        self.sess = tf.Session(config=config)
 
         self.next_element = tf.gather(next_element, ix_t, axis=1)
 
+
     def fetch_g_iter(self):
         return self.sess.run(self.next_element)
+
+    def send_task_complete_message(self):
+        self.complete_tasks += 1
+
+    def fetch_complete_tasks(self):
+        return self.complete_tasks
 
 
 def map_trans(genotype_df, phenotype_df, covariates_df,
@@ -1433,10 +1476,10 @@ def map_trans(genotype_df, phenotype_df, covariates_df,
                                 logger=logger,
                                 verbose=verbose)
 
-    # Changed from float16 to float16
+    # Changed from float32 to float32
     ggt = genotypeio.GenotypeGeneratorTrans(genotype_df.values,
                                             batch_size=batch_size,
-                                            dtype=np.float16)
+                                            dtype=np.float32)
 
     # # calculate correlation threshold for sparse output
     # if return_sparse:
@@ -1451,7 +1494,7 @@ def map_trans(genotype_df, phenotype_df, covariates_df,
     #     genotypes, phenotypes, covariates = _initialize_data(phenotype_df,
     #                                                          covariates_df,
     #                                                          batch_size=batch_size,
-    #                                                          dtype=tf.float16)
+    #                                                          dtype=tf.float32)
     #
     # else:
     #     genotypes, phenotypes, covariates, interaction = initialize_data(
@@ -1467,10 +1510,16 @@ def map_trans(genotype_df, phenotype_df, covariates_df,
     r2_list = []
 
 
-    data = ray.get(
-        [worker_task.remote(ps, phenotype_df, covariates_df, interaction_s,
+    workers =  [worker_task.remote(ps, phenotype_df, covariates_df, interaction_s,
             batch_size, return_sparse,pval_threshold,return_r2)
-            for _ in range(ggt.num_batches)])
+            for _ in range(ggt.num_batches)]
+
+    for i in tqdm.tqdm(range(ggt.num_batches),desc='Processing batches'):
+        while True:
+            time.sleep(1e-1)
+            num_comlete_tasks = ps.fetch_complete_taks.remote()
+            if num_comlete_tasks >= i+1:
+                break
 
     print(data)
     print("Reached the end!")
@@ -1500,10 +1549,10 @@ def map_trans(genotype_df, phenotype_df, covariates_df,
     #         np.array([v, phenotype_ids, pval.values[ix], maf[ix]]).T,
     #         columns=['variant_id', 'phenotype_id', 'pval', 'maf'])
     #
-    #     pval_df['pval'] = pval_df['pval'].astype(np.float32)
-    #     pval_df['maf'] = pval_df['maf'].astype(np.float16)
+    #     pval_df['pval'] = pval_df['pval'].astype(np.float64)
+    #     pval_df['maf'] = pval_df['maf'].astype(np.float32)
     #     if return_r2:
-    #         pval_df['r2'] = r2[ix].astype(np.float16)
+    #         pval_df['r2'] = r2[ix].astype(np.float32)
     # else:
     #     # truncate last batch
     #     pval = pval[:n_variants]
@@ -1585,13 +1634,13 @@ def map_trans_permutations(genotype_input, phenotype_df, covariates_df,
         nperms = permutations.shape[0]
         qv = permutations
         logger.write('  * {} permutations'.format(nperms))
-    permutations_t = tf.constant(qv, dtype=tf.float16)
+    permutations_t = tf.constant(qv, dtype=tf.float32)
     permutations_t = tf.reshape(permutations_t, shape=[-1, n_samples])
 
     genotypes_t, phenotypes_t, covariates_t = initialize_data(phenotype_df,
                                                               covariates_df,
                                                               batch_size=batch_size,
-                                                              dtype=tf.float16)
+                                                              dtype=tf.float32)
     max_r2_nominal_t, max_r2_permuted_t, idxmax_t = _calculate_max_r2(
         genotypes_t, phenotypes_t, permutations_t, covariates_t,
         maf_threshold=maf_threshold)
@@ -1611,9 +1660,9 @@ def map_trans_permutations(genotype_input, phenotype_df, covariates_df,
                                                                  verbose=True)
                 ggt = genotypeio.GenotypeGeneratorTrans(genotypes,
                                                         batch_size=batch_size,
-                                                        dtype=np.float16)
+                                                        dtype=np.float32)
                 dataset_genotypes = tf.data.Dataset.from_generator(
-                    ggt.generate_data, output_types=tf.float16)
+                    ggt.generate_data, output_types=tf.float32)
                 dataset_genotypes = dataset_genotypes.prefetch(10)
                 iterator = dataset_genotypes.make_one_shot_iterator()
                 next_element = iterator.get_next()
@@ -1696,9 +1745,9 @@ def map_trans_permutations(genotype_input, phenotype_df, covariates_df,
     else:
         ggt = genotypeio.GenotypeGeneratorTrans(genotype_df.values,
                                                 batch_size=batch_size,
-                                                dtype=np.float16)
+                                                dtype=np.float32)
         dataset_genotypes = tf.data.Dataset.from_generator(ggt.generate_data,
-                                                           output_types=tf.float16)
+                                                           output_types=tf.float32)
         dataset_genotypes = dataset_genotypes.prefetch(10)
         iterator = dataset_genotypes.make_one_shot_iterator()
         next_element = iterator.get_next()
@@ -1885,8 +1934,8 @@ def map_trans_tfrecord(vcf_tfrecord, phenotype_df, covariates_df,
                 maf[ix]]).T,
                                columns=['variant_id', 'phenotype_id', 'pval',
                                    'maf'])
-        pval_df['pval'] = pval_df['pval'].astype(np.float32)
-        pval_df['maf'] = pval_df['maf'].astype(np.float16)
+        pval_df['pval'] = pval_df['pval'].astype(np.float64)
+        pval_df['maf'] = pval_df['maf'].astype(np.float32)
     else:
         # truncate last batch
         pval = pval[:n_variants]
@@ -1974,15 +2023,15 @@ def main():
                              'columns: phenotype_id, group_id')
     parser.add_argument('--window', default=1000000, type=np.int32,
                         help='Cis-window size, in bases. Default: 1000000.')
-    parser.add_argument('--pval_threshold', default=None, type=np.float32,
+    parser.add_argument('--pval_threshold', default=None, type=np.float64,
                         help='Output only significant phenotype-variant pairs '
                              'with a p-value below threshold. Default: 1e-5 '
                              'for trans-QTL')
-    parser.add_argument('--maf_threshold', default=None, type=np.float32,
+    parser.add_argument('--maf_threshold', default=None, type=np.float64,
                         help='Include only genotypes with minor allele '
                              'frequency >=maf_threshold. Default: 0')
     parser.add_argument('--maf_threshold_interaction', default=0.05,
-                        type=np.float32,
+                        type=np.float64,
                         help='MAF threshold for interactions, applied to '
                              'lower and upper half of samples')
     parser.add_argument('--return_dense', action='store_true',
@@ -1998,9 +2047,9 @@ def main():
     parser.add_argument('--batch_size', type=int, default=50000,
                         help='Batch size. Reduce this if encountering OOM '
                              'errors.')
-    parser.add_argument('--fdr', default=0.05, type=np.float32,
+    parser.add_argument('--fdr', default=0.05, type=np.float64,
                         help='FDR for cis-QTLs')
-    parser.add_argument('--qvalue_lambda', default=None, type=np.float32,
+    parser.add_argument('--qvalue_lambda', default=None, type=np.float64,
                         help='lambda parameter for pi0est in qvalue.')
     parser.add_argument('-o', '--output_dir', default='.',
                         help='Output directory')
