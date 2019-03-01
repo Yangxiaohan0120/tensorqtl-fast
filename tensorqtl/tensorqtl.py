@@ -8,8 +8,6 @@ import os
 import subprocess
 import sys
 import time
-import tqdm
-
 from collections import OrderedDict
 from datetime import datetime
 
@@ -19,6 +17,7 @@ import ray
 import scipy.optimize
 import scipy.stats as stats
 import tensorflow as tf
+import tqdm
 from scipy.special import loggamma
 
 sys.path.insert(1, os.path.dirname(__file__))
@@ -40,7 +39,6 @@ if not has_rpy2:
         "Warning: 'rfunc' cannot be imported. R and the 'rpy2' Python package "
         "are needed.")
 
-
 OMP_NUM_THREADS = 4
 INTEROP = 2
 INTRAOP = OMP_NUM_THREADS
@@ -48,12 +46,10 @@ KMP_BLOCKTIME = 0
 KMP_SETTINGS = 1
 KMP_AFFINITY = 'granularity=fine,verbose,compact,1,0'
 
-
 os.environ["KMP_BLOCKTIME"] = str(KMP_BLOCKTIME)
 os.environ["KMP_SETTINGS"] = str(KMP_SETTINGS)
-os.environ["KMP_AFFINITY"]= KMP_AFFINITY
-if FLAGS.num_intra_threads > 0:
-    os.environ["OMP_NUM_THREADS"]= str(OMP_NUM_THREADS)
+os.environ["KMP_AFFINITY"] = KMP_AFFINITY
+os.environ["OMP_NUM_THREADS"] = str(OMP_NUM_THREADS)
 
 
 def timeit(method):
@@ -90,22 +86,22 @@ class SimpleLogger(object):
 
 
 output_dtype_dict = {
-    'num_var'                 : np.int32,
-    'beta_shape1'             : np.float32,
-    'beta_shape2'             : np.float32,
-    'true_df'                 : np.float32,
-    'pval_true_df'            : np.float64,
-    'variant_id'              : str,
-    'tss_distance'            : np.int32,
-    'ma_samples'              : np.int32,
-    'ma_count'                : np.int32,
-    'maf'                     : np.float32,
-    'ref_factor'              : np.int32,
-    'pval_nominal'            : np.float64,
-    'slope'                   : np.float32,
-    'slope_se'                : np.float32,
-    'pval_perm'               : np.float64,
-    'pval_beta'               : np.float64, }
+    'num_var'     : np.int32,
+    'beta_shape1' : np.float32,
+    'beta_shape2' : np.float32,
+    'true_df'     : np.float32,
+    'pval_true_df': np.float64,
+    'variant_id'  : str,
+    'tss_distance': np.int32,
+    'ma_samples'  : np.int32,
+    'ma_count'    : np.int32,
+    'maf'         : np.float32,
+    'ref_factor'  : np.int32,
+    'pval_nominal': np.float64,
+    'slope'       : np.float32,
+    'slope_se'    : np.float32,
+    'pval_perm'   : np.float64,
+    'pval_beta'   : np.float64, }
 
 
 # ------------------------------------------------------------------------------
@@ -1199,6 +1195,7 @@ def _initialize_data(phenotype_df, covariates_df, batch_size,
         interaction_t = tf.reshape(interaction_t, [-1, 1])
         return genotype_t, phenotype_t, covariates_t, interaction_t
 
+
 # -------------------------------------------------------------------------
 
 def initialize_data(phenotype_df, covariates_df, batch_size,
@@ -1219,6 +1216,7 @@ def initialize_data(phenotype_df, covariates_df, batch_size,
         interaction_t = tf.reshape(interaction_t, [-1, 1])
         return genotype_t, phenotype_t, covariates_t, interaction_t
 
+
 # -------------------------------------------------------------------------
 
 def _calculate_maf(genotype_t):
@@ -1226,6 +1224,7 @@ def _calculate_maf(genotype_t):
     af_t = tf.reduce_sum(genotype_t, 1) / (
             2 * tf.cast(tf.shape(genotype_t)[1], tf.float32))
     return tf.where(af_t > 0.5, 1 - af_t, af_t)
+
 
 # -------------------------------------------------------------------------
 
@@ -1264,6 +1263,7 @@ def _calculate_pval(r2_t, dof, maf_t=None, return_sparse=True,
     else:
         return pval_t
 
+
 # -------------------------------------------------------------------------
 
 def _residualize(M_t, C_t):
@@ -1278,6 +1278,7 @@ def _residualize(M_t, C_t):
     return M_t - tf.matmul(tf.matmul(M0_t, Q_t), Q_t,
                            transpose_b=True)  # keep original mean
 
+
 # -------------------------------------------------------------------------
 
 def _center_normalize(M_t, axis=0):
@@ -1289,6 +1290,7 @@ def _center_normalize(M_t, axis=0):
         N_t = M_t - tf.reduce_mean(M_t, axis=1, keepdims=True)
         return tf.divide(N_t, tf.sqrt(
             tf.reduce_sum(tf.pow(N_t, 2), axis=1, keepdims=True)))
+
 
 # -------------------------------------------------------------------------
 
@@ -1319,6 +1321,7 @@ def _calculate_corr(genotype_t, phenotype_t, covariates_t,
         return tf.squeeze(
             tf.matmul(genotype_res_t, phenotype_res_t, transpose_b=True))
 
+
 def _calculate_association(genotype_t, phenotype_t, covariates_t,
                            interaction_t=None, return_sparse=True,
                            r2_threshold=None, return_r2=False):
@@ -1341,11 +1344,9 @@ def _calculate_association(genotype_t, phenotype_t, covariates_t,
                            r2_threshold=r2_threshold, return_r2=return_r2)
 
 
-
-
 @ray.remote
 def worker_task(ps, phenotype_df, covariates_df, interaction_s,
-                    batch_size, return_sparse, pval_threshold, return_r2):
+                batch_size, return_sparse, pval_threshold, return_r2):
     g_iter = ray.get(ps.fetch_g_iter.remote())
 
     # Precision change test
@@ -1353,7 +1354,9 @@ def worker_task(ps, phenotype_df, covariates_df, interaction_s,
 
     if interaction_s is None:
         genotypes, phenotypes, covariates = _initialize_data(phenotype_df,
-            covariates_df, batch_size=batch_size, dtype=tf.float32)
+                                                             covariates_df,
+                                                             batch_size=batch_size,
+                                                             dtype=tf.float32)
     else:
         genotypes, phenotypes, covariates, interaction = initialize_data(
             phenotype_df, covariates_df, batch_size=batch_size,
@@ -1449,7 +1452,6 @@ class ParameterServer(object):
 
         self.next_element = tf.gather(next_element, ix_t, axis=1)
 
-
     def fetch_g_iter(self):
         return self.sess.run(self.next_element)
 
@@ -1510,7 +1512,7 @@ def map_trans(genotype_df, phenotype_df, covariates_df,
 
     max_n_workers = 50
 
-    n_batches = ggt.num_batches # 336
+    n_batches = ggt.num_batches  # 336
 
     n_ray_batches = n_batches // max_n_workers
 
@@ -1521,16 +1523,33 @@ def map_trans(genotype_df, phenotype_df, covariates_df,
         max_n_workers = n_batches
 
     for ray_batch in range(n_ray_batches):
-        workers =  [worker_task.remote(ps, phenotype_df, covariates_df, interaction_s,
-                batch_size, return_sparse,pval_threshold,return_r2)
-                for _ in range(max_n_workers)]
+        workers = [
+            worker_task.remote(ps, phenotype_df, covariates_df, interaction_s,
+                               batch_size, return_sparse, pval_threshold,
+                               return_r2)
+            for _ in range(max_n_workers)]
 
-        for i in tqdm.tqdm(range(max_n_workers),desc='Processing batch {}/{}'):
+        for i in tqdm.tqdm(range(max_n_workers),
+                           desc='Processing batch {}/{}'.format(i,
+                                                                n_ray_batches)):
             while True:
                 time.sleep(1e-1)
-                num_comlete_tasks = ps.fetch_complete_taks.remote()
-                if num_comlete_tasks >= i+1:
+                num_comlete_tasks = ps.fetch_complete_taks.remote() % \
+                                    max_n_workers
+                if num_comlete_tasks >= i + 1:
                     break
+
+    # workers =  [worker_task.remote(ps, phenotype_df, covariates_df,
+    # interaction_s,
+    #         batch_size, return_sparse,pval_threshold,return_r2)
+    #         for _ in range(ggt.num_batches)]
+    #
+    # for i in tqdm.tqdm(range(ggt.num_batches),desc='Processing batches'):
+    #     while True:
+    #         time.sleep(1e-1)
+    #         num_comlete_tasks = int(ray.get(ps.fetch_complete_tasks.remote()))
+    #         if num_comlete_tasks >= i+1:
+    #             break
 
     print(data)
     print("Reached the end!")
