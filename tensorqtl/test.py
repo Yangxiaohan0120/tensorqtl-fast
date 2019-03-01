@@ -4,13 +4,22 @@ import genotypeio
 import pandas as pd
 import tensorflow as tf
 from ray_functions import init_ray
-
+import argparse
 
 import tensorqtl
 
+parser = argparse.ArgumentParser(description='TensorQTL test function')
+parser.add_argument('--dist',default=True,type=bool)
+
+args = parser.parse_args()
+
 tf.keras.backend.clear_session()
 
-init_ray(redis_max_memory=100000000000, object_store_memory=500000000000)
+if args.dist:
+    init_ray(redis_max_memory=100000000000, object_store_memory=500000000000)
+else:
+    init_ray(redis_max_memory=100000000000, object_store_memory=500000000000,
+             RUN_CLUSTER=False)
 
 # ray.init(redis_max_memory=100000000000,object_store_memory=500000000000)
 

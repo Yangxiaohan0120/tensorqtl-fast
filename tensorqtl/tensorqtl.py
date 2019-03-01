@@ -1347,11 +1347,15 @@ def _calculate_association(genotype_t, phenotype_t, covariates_t,
 @ray.remote
 def worker_task(ps, phenotype_df, covariates_df, interaction_s,
                 batch_size, return_sparse, pval_threshold, return_r2):
+
+    start_time = time.time()
     g_iter = ray.get(ps.fetch_g_iter.remote())
+    print('g_iter elapsed time: {}'.format(time.time()-start_time))
 
     # Precision change test
     g_iter = np.float32(g_iter)
 
+    start_time = time.time()
     if interaction_s is None:
         genotypes, phenotypes, covariates = _initialize_data(phenotype_df,
                                                              covariates_df,
@@ -1361,6 +1365,8 @@ def worker_task(ps, phenotype_df, covariates_df, interaction_s,
         genotypes, phenotypes, covariates, interaction = initialize_data(
             phenotype_df, covariates_df, batch_size=batch_size,
             interaction_s=interaction_s)
+
+    print('initialize_data elapsed time: {}'.format(time.time() - start_time))
 
     config = tf.ConfigProto()
     config.intra_op_parallelism_threads = INTRAOP
@@ -1393,11 +1399,14 @@ def worker_task(ps, phenotype_df, covariates_df, interaction_s,
                                    return_sparse=return_sparse,
                                    r2_threshold=r2_threshold)
 
+    start_time = time.time()
     output = sess.run(x, feed_dict={genotypes: g_iter})
+    print('x elapsed time: {}'.format(time.time() - start_time))
 
     del g_iter, genotypes, phenotypes, covariates
 
     ps.send_task_complete_message.remote()
+    print("Task complete!")
     return output
 
 

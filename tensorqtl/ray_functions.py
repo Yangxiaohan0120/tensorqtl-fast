@@ -106,8 +106,7 @@ def init_ray(num_workers: int = 5, RUN_CLUSTER: bool = True,
             else:
                 raise UserWarning(
                     "Invalid kwarg arg: {}, not in {}".format(n,
-                                                              list(
-                                                                  ray_args.keys())))
+                        list(ray_args.keys())))
 
         if cluster_name.upper() == 'VLAB':
             qsub_non_excl = '/opt/pbs/default/bin/qsub'
@@ -167,7 +166,7 @@ def init_ray(num_workers: int = 5, RUN_CLUSTER: bool = True,
             raise UserWarning(
                 "Invalid cluster name: {}".format(cluster_name))
     else:
-        ray.init()
+        ray.init(**kwargs)
 
 
 if __name__ == "__main__":
@@ -176,4 +175,3 @@ if __name__ == "__main__":
     while True:
         print(get_ip_addresses(5, wait=False))
         time.sleep(3)
-
