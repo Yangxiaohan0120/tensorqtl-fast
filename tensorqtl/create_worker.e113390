@@ -1,0 +1,28 @@
+2019-03-01 12:53:22,188	INFO services.py:396 -- Waiting for redis server at 10.212.62.90:17941 to respond...
+Traceback (most recent call last):
+  File "/homes/soffer/miniconda3/bin/ray", line 11, in <module>
+    sys.exit(main())
+  File "/homes/soffer/miniconda3/lib/python3.6/site-packages/ray/scripts/scripts.py", line 729, in main
+    return cli()
+  File "/homes/soffer/miniconda3/lib/python3.6/site-packages/click/core.py", line 764, in __call__
+    return self.main(*args, **kwargs)
+  File "/homes/soffer/miniconda3/lib/python3.6/site-packages/click/core.py", line 717, in main
+    rv = self.invoke(ctx)
+  File "/homes/soffer/miniconda3/lib/python3.6/site-packages/click/core.py", line 1137, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+  File "/homes/soffer/miniconda3/lib/python3.6/site-packages/click/core.py", line 956, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "/homes/soffer/miniconda3/lib/python3.6/site-packages/click/core.py", line 555, in invoke
+    return callback(*args, **kwargs)
+  File "/homes/soffer/miniconda3/lib/python3.6/site-packages/ray/scripts/scripts.py", line 357, in start
+    services.check_version_info(redis_client)
+  File "/homes/soffer/miniconda3/lib/python3.6/site-packages/ray/services.py", line 483, in check_version_info
+    raise Exception(error_message)
+Exception: Version mismatch: The cluster was started with:
+    Ray: 0.6.3
+    Python: 3.6.8
+    Pyarrow: 0.12.0-RAY
+This process on node 10.212.62.110 was started with:
+    Ray: 0.6.3
+    Python: 3.6.6
+    Pyarrow: 0.12.0-RAY
