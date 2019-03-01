@@ -5,6 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="69858883-011b-4b23-832b-2cc9db16f081" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tensorqtl/tensorqtl.py" beforeDir="false" afterPath="$PROJECT_DIR$/tensorqtl/tensorqtl.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -29,8 +30,8 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/tensorqtl/tensorqtl.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="342">
-                  <caret line="1391" lean-forward="true" selection-start-line="1391" selection-end-line="1391" />
+                <state relative-caret-position="548">
+                  <caret line="1525" column="46" lean-forward="true" selection-start-line="1525" selection-start-column="46" selection-end-line="1525" selection-end-column="46" />
                 </state>
               </provider>
             </entry>
@@ -78,8 +79,8 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/tensorqtl/ray_tensorqtl.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="3736">
-                  <caret line="1217" column="34" lean-forward="true" selection-start-line="1217" selection-start-column="34" selection-end-line="1217" selection-end-column="34" />
+                <state relative-caret-position="601">
+                  <caret line="1008" lean-forward="true" selection-start-line="1008" selection-end-line="1008" />
                 </state>
               </provider>
             </entry>
@@ -234,12 +235,12 @@
     <editor active="true" />
     <layout>
       <window_info id="Favorites" order="0" side_tool="true" />
-      <window_info active="true" content_ui="combo" id="Project" order="1" visible="true" weight="0.13361838" />
+      <window_info content_ui="combo" id="Project" order="1" visible="true" weight="0.13361838" />
       <window_info id="Structure" order="2" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Inspection Results" order="0" weight="0.24195625" />
       <window_info anchor="bottom" id="Terminal" order="1" weight="0.26833797" />
       <window_info anchor="bottom" id="Event Log" order="2" side_tool="true" />
-      <window_info anchor="bottom" id="Python Console" order="3" visible="true" weight="0.24474187" />
+      <window_info active="true" anchor="bottom" id="Python Console" order="3" visible="true" weight="0.24419685" />
       <window_info anchor="bottom" id="Message" order="4" />
       <window_info anchor="bottom" id="Find" order="5" />
       <window_info anchor="bottom" id="Run" order="6" />
@@ -353,8 +354,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/tensorqtl/tensorqtl.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="342">
-          <caret line="1391" lean-forward="true" selection-start-line="1391" selection-end-line="1391" />
+        <state relative-caret-position="548">
+          <caret line="1525" column="46" lean-forward="true" selection-start-line="1525" selection-start-column="46" selection-end-line="1525" selection-end-column="46" />
         </state>
       </provider>
     </entry>

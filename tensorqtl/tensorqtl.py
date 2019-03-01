@@ -1508,16 +1508,29 @@ def map_trans(genotype_df, phenotype_df, covariates_df,
     maf_list = []
     r2_list = []
 
-    workers =  [worker_task.remote(ps, phenotype_df, covariates_df, interaction_s,
-            batch_size, return_sparse,pval_threshold,return_r2)
-            for _ in range(ggt.num_batches)]
+    max_n_workers = 50
 
-    for i in tqdm.tqdm(range(ggt.num_batches),desc='Processing batches'):
-        while True:
-            time.sleep(1e-1)
-            num_comlete_tasks = ps.fetch_complete_taks.remote()
-            if num_comlete_tasks >= i+1:
-                break
+    n_batches = ggt.num_batches # 336
+
+    n_ray_batches = n_batches // max_n_workers
+
+    if n_batches % max_n_workers != 0:
+        n_ray_batches += 1
+
+    if max_n_workers > n_batches:
+        max_n_workers = n_batches
+
+    for ray_batch in range(n_ray_batches):
+        workers =  [worker_task.remote(ps, phenotype_df, covariates_df, interaction_s,
+                batch_size, return_sparse,pval_threshold,return_r2)
+                for _ in range(max_n_workers)]
+
+        for i in tqdm.tqdm(range(max_n_workers),desc='Processing batch {}/{}'):
+            while True:
+                time.sleep(1e-1)
+                num_comlete_tasks = ps.fetch_complete_taks.remote()
+                if num_comlete_tasks >= i+1:
+                    break
 
     print(data)
     print("Reached the end!")
