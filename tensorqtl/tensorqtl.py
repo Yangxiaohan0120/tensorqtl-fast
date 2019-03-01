@@ -1396,6 +1396,8 @@ def worker_task(ps, phenotype_df, covariates_df, interaction_s,
     output = sess.run(x, feed_dict={genotypes: g_iter})
 
     del g_iter, genotypes, phenotypes, covariates
+
+    ps.send_task_complete_message.remote()
     return output
 
 
