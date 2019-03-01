@@ -12,7 +12,7 @@ parser = argparse.ArgumentParser(description='TensorQTL test function')
 parser.add_argument('--dist',type=int)
 
 args = parser.parse_args()
-print(args.dist,type(args.dist))
+
 tf.keras.backend.clear_session()
 
 if args.dist == 1:
