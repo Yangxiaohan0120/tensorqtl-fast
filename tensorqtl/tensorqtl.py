@@ -52,8 +52,7 @@ KMP_AFFINITY = 'granularity=fine,verbose,compact,1,0'
 os.environ["KMP_BLOCKTIME"] = str(KMP_BLOCKTIME)
 os.environ["KMP_SETTINGS"] = str(KMP_SETTINGS)
 os.environ["KMP_AFFINITY"]= KMP_AFFINITY
-if FLAGS.num_intra_threads > 0:
-    os.environ["OMP_NUM_THREADS"]= str(OMP_NUM_THREADS)
+os.environ["OMP_NUM_THREADS"]= str(OMP_NUM_THREADS)
 
 
 def timeit(method):
@@ -1515,7 +1514,7 @@ def map_trans(genotype_df, phenotype_df, covariates_df,
     for i in tqdm.tqdm(range(ggt.num_batches),desc='Processing batches'):
         while True:
             time.sleep(1e-1)
-            num_comlete_tasks = ps.fetch_complete_taks.remote()
+            num_comlete_tasks = int(ray.get(ps.fetch_complete_tasks.remote()))
             if num_comlete_tasks >= i+1:
                 break
 
