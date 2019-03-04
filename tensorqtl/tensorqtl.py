@@ -1521,7 +1521,7 @@ def map_trans(genotype_df, phenotype_df, covariates_df,
     maf_list = []
     r2_list = []
 
-    max_n_workers = 50
+    max_n_workers = 300
 
     n_batches = ggt.num_batches  # 336
 
@@ -1575,7 +1575,7 @@ def map_trans(genotype_df, phenotype_df, covariates_df,
     #         if num_comlete_tasks >= i+1:
     #             break
 
-    print(data)
+    #print(data)
     print("Reached the end!")
 
     # if return_sparse:

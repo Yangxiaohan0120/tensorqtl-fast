@@ -74,7 +74,7 @@ def get_ip_addresses(n_workers: int, wait: bool = True) -> set:
     return ips
 
 
-def init_ray(num_workers: int = 5, RUN_CLUSTER: bool = True,
+def init_ray(num_workers: int = 10, RUN_CLUSTER: bool = True,
              cluster_name: str = 'vLab', **kwargs) -> None:
     """
     Initialize a ray compute cluster
@@ -128,7 +128,7 @@ def init_ray(num_workers: int = 5, RUN_CLUSTER: bool = True,
             result = subprocess.run(ray_head_cmd,
                                     stderr=subprocess.PIPE,
                                     stdout=subprocess.PIPE)
-
+            print(result)
             if not result.returncode:
                 output = result.stderr
                 output = [n for n in output.decode().split('\n')
@@ -136,7 +136,8 @@ def init_ray(num_workers: int = 5, RUN_CLUSTER: bool = True,
 
                 worker_cmd = output[0][4:]
                 head_ip_addr = worker_cmd.split(' ')[-1]
-
+                
+                print(head_ip_addr)
                 ray.init(redis_address=head_ip_addr)
 
                 for i in range(num_workers):
@@ -145,7 +146,7 @@ def init_ray(num_workers: int = 5, RUN_CLUSTER: bool = True,
                                  'create_worker -v ' \
                                  'addr={}'.format(
                         qsub_non_excl, head_ip_addr)
-
+                    print(worker_cmd)
                     status = os.system(worker_cmd)
 
                     if status != 0:
